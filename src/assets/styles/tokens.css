@@ -1,0 +1,72 @@
+/* ============================================
+   HYPERSATISFYING — Design Tokens
+   Single source of truth for colors, fonts,
+   spacing, and motion. Never hardcode these
+   values in components.
+   ============================================ */
+
+:root {
+  /* --- Base surfaces (dark tech theme) --- */
+  --bg-base: #0a0e17;
+  --bg-deep: #060910;
+  --surface-glass: rgba(20, 28, 46, 0.55);
+  --surface-glass-strong: rgba(24, 34, 56, 0.8);
+  --surface-border: rgba(140, 180, 255, 0.14);
+  --surface-border-bright: rgba(140, 180, 255, 0.35);
+
+  /* --- Text --- */
+  --text-primary: #e8eefc;
+  --text-secondary: #93a1bd;
+  --text-dim: #5a6880;
+
+  /* --- Currency / system accents --- */
+  --shards: #38d6ff;        /* soft currency — cyan */
+  --shards-glow: rgba(56, 214, 255, 0.45);
+  --cores: #ff4dd8;         /* premium currency — magenta */
+  --cores-glow: rgba(255, 77, 216, 0.45);
+  --mastery: #8b7bff;       /* mastery number — violet */
+  --prestige: #ffc83d;      /* prestige / legendary — gold */
+  --prestige-glow: rgba(255, 200, 61, 0.5);
+  --success: #3dffa0;
+  --danger: #ff5470;
+
+  /* --- Gacha rarity tiers --- */
+  --rarity-common: #a8b4c8;
+  --rarity-uncommon: #4ade80;
+  --rarity-rare: #38b6ff;
+  --rarity-epic: #b45bff;
+  --rarity-legendary: #ffc83d;
+
+  /* --- Typography --- */
+  --font-display: 'Orbitron', 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* --- Spacing scale --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* --- Radii --- */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-full: 999px;
+
+  /* --- Motion --- */
+  --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 150ms;
+  --dur-med: 300ms;
+  --dur-slow: 600ms;
+
+  /* --- Effects --- */
+  --glass-blur: blur(14px);
+  --glow-sm: 0 0 12px;
+  --glow-md: 0 0 24px;
+  --glow-lg: 0 0 48px;
+}
