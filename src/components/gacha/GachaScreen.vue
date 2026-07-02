@@ -4,6 +4,7 @@ import PullReveal from './PullReveal.vue'
 import { useGameStore } from '../../stores/gameStore'
 import { useGachaStore, BANNERS } from '../../stores/gachaStore'
 import { useInventoryStore } from '../../stores/inventoryStore'
+import { useQuestStore } from '../../stores/questStore'
 import { useJuice } from '../../composables/useJuice'
 import { formatNumber } from '../../engine/numberFormat'
 import { sfx } from '../../engine/soundManager'
@@ -11,6 +12,7 @@ import { sfx } from '../../engine/soundManager'
 const game = useGameStore()
 const gacha = useGachaStore()
 const inventory = useInventoryStore()
+const quests = useQuestStore()
 const { toast } = useJuice()
 
 const pending = ref(null) // results awaiting reveal
@@ -25,6 +27,7 @@ function pull(bannerId, count) {
     return
   }
   pending.value = gacha.resolvePulls(bannerId, count)
+  quests.notifyEvent({ type: 'gachaPulls', amount: count })
 }
 
 function collect() {

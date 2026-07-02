@@ -1,5 +1,6 @@
 import { useGameStore } from '../stores/gameStore'
 import { useInventoryStore } from '../stores/inventoryStore'
+import { useQuestStore } from '../stores/questStore'
 import { useJuice } from './useJuice'
 import { getGame } from '../minigames/registry'
 import { formatNumber } from '../engine/numberFormat'
@@ -13,6 +14,7 @@ import { sfx } from '../engine/soundManager'
 export function useMinigameResult() {
   const game = useGameStore()
   const inventory = useInventoryStore()
+  const quests = useQuestStore()
   const { toast } = useJuice()
 
   const reportResult = ({ gameId, score, stats = {} }) => {
@@ -26,6 +28,10 @@ export function useMinigameResult() {
     game.addShards(shards)
     if (cores > 0) game.addCores(cores)
     const isRecord = game.recordGame(gameId, score)
+
+    quests.notifyEvent({ type: 'playCount', gameId })
+    quests.notifyEvent({ type: 'currencyEarned', gameId, amount: shards })
+    quests.notifyEvent({ type: 'scoreThreshold', gameId, amount: score })
 
     sfx.coin()
     toast(`+${formatNumber(shards)} Shards`, { kind: 'shards' })

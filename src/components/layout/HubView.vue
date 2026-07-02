@@ -2,6 +2,8 @@
 import { MINIGAMES } from '../../minigames/registry'
 import { useGameStore } from '../../stores/gameStore'
 import { formatNumber } from '../../engine/numberFormat'
+import QuestPanel from '../quests/QuestPanel.vue'
+import RebirthPanel from '../prestige/RebirthPanel.vue'
 
 const game = useGameStore()
 </script>
@@ -27,6 +29,9 @@ const game = useGameStore()
         </span>
       </RouterLink>
     </div>
+
+    <QuestPanel />
+    <RebirthPanel />
   </div>
 </template>
 
