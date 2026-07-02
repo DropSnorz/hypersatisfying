@@ -253,34 +253,6 @@ useGameLoop((dt, time) => {
 </template>
 
 <style scoped>
-.game {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.stat-bar {
-  display: flex;
-  justify-content: space-between;
-}
-
-.stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.stat-label {
-  font-size: 9px;
-  letter-spacing: 0.2em;
-  color: var(--text-dim);
-}
-
-.stat-value {
-  font-size: 20px;
-  font-weight: 700;
-}
-
 .combo .stat-value {
   transition: all var(--dur-fast);
 }
@@ -289,70 +261,5 @@ useGameLoop((dt, time) => {
   color: var(--prestige);
   text-shadow: var(--glow-sm) var(--prestige-glow);
   transform: scale(1.15);
-}
-
-.canvas-wrap {
-  position: relative;
-}
-
-.game-canvas {
-  display: block;
-  width: 100%;
-  border-radius: var(--radius-lg);
-}
-
-.overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-3);
-  background: rgba(6, 9, 16, 0.82);
-  backdrop-filter: blur(6px);
-  border-radius: var(--radius-lg);
-  text-align: center;
-}
-
-.overlay h3 {
-  font-family: var(--font-display);
-  letter-spacing: 0.15em;
-  font-size: 20px;
-}
-
-.overlay p {
-  color: var(--text-secondary);
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.final {
-  font-size: 30px !important;
-  font-weight: 700;
-  color: var(--text-primary) !important;
-}
-
-.shards-text { color: var(--shards); }
-.cores-text { color: var(--cores); }
-
-.cta {
-  font-family: var(--font-display);
-  font-size: 15px;
-  letter-spacing: 0.15em;
-  padding: var(--space-3) var(--space-6);
-  border-radius: var(--radius-full);
-  color: var(--bg-deep);
-  background: var(--shards);
-  box-shadow: var(--glow-md) var(--shards-glow);
-  transition: transform var(--dur-fast) var(--ease-out-back);
-}
-
-.cta:hover {
-  transform: scale(1.06);
-}
-
-.cta:active {
-  transform: scale(0.94);
 }
 </style>

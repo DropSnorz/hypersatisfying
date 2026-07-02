@@ -19,7 +19,47 @@ export const MINIGAMES = [
       cores: stats.goldenPops ? stats.goldenPops * 2 : 0,
     }),
   },
-  // Phase 3: RhythmBar, SliceReflex, PatternMatch, MergeOrbs, IdleBurstClicker
+  {
+    id: 'rhythm-bar',
+    name: 'Rhythm Bar',
+    tagline: 'Nail the perfect timing window',
+    icon: '⏸',
+    accent: 'var(--prestige)',
+    component: defineAsyncComponent(() => import('./RhythmBar.vue')),
+    free: true,
+    rewardCurve: (score, stats) => ({
+      shards: score * 3,
+      cores: Math.floor((stats.bestStreak ?? 0) / 10),
+    }),
+  },
+  {
+    id: 'slice-reflex',
+    name: 'Slice Reflex',
+    tagline: 'Slice everything. Avoid the mines.',
+    icon: '⌁',
+    accent: 'var(--success)',
+    component: defineAsyncComponent(() => import('./SliceReflex.vue')),
+    free: true,
+    rewardCurve: (score, stats) => ({
+      shards: score * 2.5,
+      cores: stats.multiSlices ?? 0,
+    }),
+  },
+  {
+    id: 'pattern-match',
+    name: 'Pattern Match',
+    tagline: 'Memorize. Repeat. Survive.',
+    icon: '⊞',
+    accent: 'var(--mastery)',
+    component: defineAsyncComponent(() => import('./PatternMatch.vue')),
+    free: true,
+    rewardCurve: (score) => ({
+      // superlinear per round survived — encourages "one more try"
+      shards: Math.floor(Math.pow(score, 1.6) * 10),
+      cores: score >= 8 ? Math.floor(score / 4) : 0,
+    }),
+  },
+  // Phase 4+: MergeOrbs, IdleBurstClicker (gacha-unlockable)
 ]
 
 export function getGame(gameId) {
