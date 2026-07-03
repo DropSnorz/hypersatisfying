@@ -21,10 +21,10 @@ const pending = ref<GachaItem[] | null>(null) // results awaiting reveal
 function pull(bannerId: BannerId, count: number) {
   const banner = BANNERS[bannerId]
   const cost = count === 10 ? banner.cost10 : banner.cost * count
-  const paid = banner.currency === 'shards' ? game.spendShards(cost) : game.spendCores(cost)
+  const paid = banner.currency === 'dollars' ? game.spendDollars(cost) : game.spendCompute(cost)
   if (!paid) {
     sfx.error()
-    toast(`Not enough ${banner.currency === 'shards' ? 'Shards' : 'Cores'}`, { kind: 'error' })
+    toast(`Not enough ${banner.currency === 'dollars' ? 'Dollars' : 'Compute'}`, { kind: 'error' })
     return
   }
   pending.value = gacha.resolvePulls(bannerId, count)
@@ -61,11 +61,11 @@ function collect() {
       <div class="pull-row">
         <button class="pull-btn" @click="pull(banner.id, 1)">
           PULL ×1
-          <span class="cost num" :class="banner.currency">{{ formatNumber(banner.cost) }}</span>
+          <span class="cost num" :class="banner.currency">{{ banner.currency === 'dollars' ? '$' : '⚡' }}{{ formatNumber(banner.cost) }}</span>
         </button>
         <button class="pull-btn ten" @click="pull(banner.id, 10)">
           PULL ×10
-          <span class="cost num" :class="banner.currency">{{ formatNumber(banner.cost10) }}</span>
+          <span class="cost num" :class="banner.currency">{{ banner.currency === 'dollars' ? '$' : '⚡' }}{{ formatNumber(banner.cost10) }}</span>
         </button>
       </div>
     </div>
@@ -130,8 +130,8 @@ function collect() {
 }
 
 .premium .banner-head h3 {
-  color: var(--cores);
-  text-shadow: var(--glow-sm) var(--cores-glow);
+  color: var(--compute);
+  text-shadow: var(--glow-sm) var(--compute-glow);
 }
 
 .pity {
@@ -170,7 +170,7 @@ function collect() {
 
 .pull-btn:hover {
   transform: translateY(-2px);
-  border-color: var(--shards);
+  border-color: var(--dollars);
 }
 
 .pull-btn:active {
@@ -187,8 +187,8 @@ function collect() {
   font-weight: 700;
 }
 
-.cost.shards { color: var(--shards); }
-.cost.cores { color: var(--cores); }
+.cost.dollars { color: var(--dollars); }
+.cost.compute { color: var(--compute); }
 
 .collection {
   padding: var(--space-4);

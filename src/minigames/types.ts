@@ -1,17 +1,18 @@
 import type { Component } from 'vue'
 
-export type MinigameId = 'bubble-pop' | 'rhythm-bar' | 'slice-reflex' | 'pattern-match'
+export type MinigameId = 'bubble-pop' | 'load-balancer' | 'slice-reflex' | 'pattern-match'
 
 /** Union of every stat any minigame might report; each game only sets its own subset. */
 export interface MinigameStats {
   goldenPops?: number
   bestStreak?: number
+  perfectRoutes?: number
   multiSlices?: number
 }
 
 export interface MinigameReward {
-  shards: number
-  cores: number
+  dollars: number
+  compute: number
 }
 
 export interface MinigameDef {

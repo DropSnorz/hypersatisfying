@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia'
 
 export interface GameState {
-  shards: number
-  cores: number
-  mastery: number
-  lifetimeShards: number
+  dollars: number
+  compute: number
+  scale: number
+  lifetimeDollars: number
   prestige: {
     rebirths: number
     multiplier: number
@@ -17,16 +17,16 @@ export interface GameState {
 
 /**
  * Central currency + progression state. Everything hangs off this.
- * - shards: soft currency (spendable)
- * - cores: premium currency (earn-only, spendable on premium gacha)
- * - mastery: the number that only ever goes up
+ * - dollars: soft currency (spendable)
+ * - compute: premium currency (earn-only, spendable on premium gacha)
+ * - scale: the number that only ever goes up
  */
 export const useGameStore = defineStore('game', {
   state: (): GameState => ({
-    shards: 0,
-    cores: 0,
-    mastery: 0,
-    lifetimeShards: 0,
+    dollars: 0,
+    compute: 0,
+    scale: 0,
+    lifetimeDollars: 0,
     prestige: {
       rebirths: 0,
       multiplier: 1,
@@ -40,33 +40,33 @@ export const useGameStore = defineStore('game', {
   getters: {
     /** Global earn multiplier from prestige (gacha boosts stack in inventoryStore) */
     globalMultiplier: (state) => state.prestige.multiplier,
-    canRebirth: (state) => state.mastery >= 10000,
+    canRebirth: (state) => state.scale >= 10000,
   },
 
   actions: {
-    addShards(amount: number): number {
+    addDollars(amount: number): number {
       const gained = Math.floor(amount)
-      this.shards += gained
-      this.lifetimeShards += gained
-      this.mastery += gained
+      this.dollars += gained
+      this.lifetimeDollars += gained
+      this.scale += gained
       return gained
     },
 
-    addCores(amount: number): number {
+    addCompute(amount: number): number {
       const gained = Math.floor(amount)
-      this.cores += gained
+      this.compute += gained
       return gained
     },
 
-    spendShards(amount: number): boolean {
-      if (this.shards < amount) return false
-      this.shards -= amount
+    spendDollars(amount: number): boolean {
+      if (this.dollars < amount) return false
+      this.dollars -= amount
       return true
     },
 
-    spendCores(amount: number): boolean {
-      if (this.cores < amount) return false
-      this.cores -= amount
+    spendCompute(amount: number): boolean {
+      if (this.compute < amount) return false
+      this.compute -= amount
       return true
     },
 
@@ -80,7 +80,7 @@ export const useGameStore = defineStore('game', {
 
     rebirth(): boolean {
       if (!this.canRebirth) return false
-      this.shards = 0
+      this.dollars = 0
       this.prestige.rebirths++
       // +5% global gain per rebirth, permanent
       this.prestige.multiplier = 1 + this.prestige.rebirths * 0.05

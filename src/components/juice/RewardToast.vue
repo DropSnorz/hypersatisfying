@@ -40,16 +40,16 @@ const { juiceState } = useJuice()
   font-size: 14px;
 }
 
-.toast.shards {
-  color: var(--shards);
-  border-color: var(--shards);
-  box-shadow: var(--glow-sm) var(--shards-glow);
+.toast.dollars {
+  color: var(--dollars);
+  border-color: var(--dollars);
+  box-shadow: var(--glow-sm) var(--dollars-glow);
 }
 
-.toast.cores {
-  color: var(--cores);
-  border-color: var(--cores);
-  box-shadow: var(--glow-sm) var(--cores-glow);
+.toast.compute {
+  color: var(--compute);
+  border-color: var(--compute);
+  box-shadow: var(--glow-sm) var(--compute-glow);
 }
 
 .toast.record {

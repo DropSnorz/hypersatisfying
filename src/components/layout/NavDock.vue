@@ -45,7 +45,7 @@ const settings = useSettingsStore()
 }
 
 .dock-btn.active {
-  color: var(--shards);
+  color: var(--dollars);
   background: rgba(56, 214, 255, 0.1);
   box-shadow: inset 0 0 12px rgba(56, 214, 255, 0.08);
 }

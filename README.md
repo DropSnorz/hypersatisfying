@@ -1,8 +1,8 @@
-# HYPERSATISFYING
+# HYPERSCALE
 
-A browser-based collection of hypersatisfying minigames wrapped in an
-always-something-to-do meta loop: growing numbers, gacha pulls, daily
-directives, and a prestige system. Dark tech aesthetic, all juice
+An incremental browser game about scaling a datacenter: run hypersatisfying
+minigames to earn **Dollars** and **Compute**, pull the gacha for hardware,
+and grow the number that only goes up. Dark tech aesthetic, all juice
 synthesized in-browser (canvas particles + Web Audio) — zero asset files,
 zero backend.
 
@@ -18,25 +18,25 @@ before bundling; run `npm run typecheck` on its own to just check types.
 
 ## The loop
 
-1. **Play** any minigame → score converts to **Shards** (cyan) and
-   occasionally **Cores** (magenta) via per-game reward curves.
-2. **Shards** feed the Standard gacha banner; **Cores** feed the premium
+1. **Play** any minigame → score converts to **$ Dollars** (cyan) and
+   occasionally **Compute** (magenta) via per-game reward curves.
+2. **Dollars** feed the Standard gacha banner; **Compute** feeds the premium
    Singularity banner with boosted top-tier odds.
 3. Gacha items are cosmetics and small capped **earn multipliers**, with
    soft pity from pull 40 and a guaranteed Epic+ at 50.
 4. **Daily directives** (3 rotating quests) and a 7-day **daily uplink**
    streak keep both currencies flowing.
-5. All earnings also grow **Mastery** — the number that only goes up.
-   At 10K Mastery, **Rebirth** resets your Shards for a permanent
+5. All earnings also grow **Scale** — the number that only goes up.
+   At 10K Scale, **Rebirth** resets your Dollars for a permanent
    stacking +5% earnings multiplier.
 
 ## Minigames
 
 | Game | Loop |
 |---|---|
-| Bubble Pop | Tap same-color chains before the timer ends; gold bubbles pay Cores |
-| Rhythm Bar | Tap when the marker crosses the gold zone; perfects chain combos |
-| Slice Reflex | Swipe through falling shards; 3+ per stroke pays Cores; avoid mines |
+| Bubble Pop | Tap same-color chains before the timer ends; gold bubbles pay Compute |
+| Load Balancer | Racks fill with traffic; flush the one under the sweeping needle above the gold line for a PERFECT ROUTE; a rack at 100% melts |
+| Slice Reflex | Swipe through falling shards; 3+ per stroke pays Compute; avoid mines |
 | Pattern Match | Simon-style sequences; rewards grow superlinearly per round |
 
 ## Architecture

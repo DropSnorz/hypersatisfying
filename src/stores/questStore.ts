@@ -12,8 +12,8 @@ export type QuestType = 'playCount' | 'currencyEarned' | 'gachaPulls' | 'scoreTh
 export type QuestGameId = MinigameId | 'any'
 
 export interface QuestReward {
-  shards: number
-  cores: number
+  dollars: number
+  compute: number
 }
 
 export interface QuestTemplate {
@@ -41,16 +41,16 @@ function todayKey() {
 }
 
 const QUEST_TEMPLATES: QuestTemplate[] = [
-  { type: 'playCount', target: 3, gameId: 'any', desc: 'Play 3 rounds of anything', reward: { shards: 300, cores: 0 } },
-  { type: 'playCount', target: 5, gameId: 'any', desc: 'Play 5 rounds of anything', reward: { shards: 500, cores: 2 } },
-  { type: 'currencyEarned', target: 500, gameId: 'any', desc: 'Earn 500 Shards from minigames', reward: { shards: 250, cores: 1 } },
-  { type: 'currencyEarned', target: 1500, gameId: 'any', desc: 'Earn 1.5K Shards from minigames', reward: { shards: 600, cores: 3 } },
-  { type: 'gachaPulls', target: 3, gameId: 'any', desc: 'Pull the gacha 3 times', reward: { shards: 400, cores: 1 } },
-  { type: 'playCount', target: 2, gameId: 'bubble-pop', desc: 'Play Bubble Pop twice', reward: { shards: 350, cores: 1 } },
-  { type: 'playCount', target: 2, gameId: 'rhythm-bar', desc: 'Play Rhythm Bar twice', reward: { shards: 350, cores: 1 } },
-  { type: 'playCount', target: 2, gameId: 'slice-reflex', desc: 'Play Slice Reflex twice', reward: { shards: 350, cores: 1 } },
-  { type: 'playCount', target: 2, gameId: 'pattern-match', desc: 'Play Pattern Match twice', reward: { shards: 350, cores: 1 } },
-  { type: 'scoreThreshold', target: 50, gameId: 'any', desc: 'Score 50+ in a single round', reward: { shards: 450, cores: 2 } },
+  { type: 'playCount', target: 3, gameId: 'any', desc: 'Play 3 rounds of anything', reward: { dollars: 300, compute: 0 } },
+  { type: 'playCount', target: 5, gameId: 'any', desc: 'Play 5 rounds of anything', reward: { dollars: 500, compute: 2 } },
+  { type: 'currencyEarned', target: 500, gameId: 'any', desc: 'Earn $500 from minigames', reward: { dollars: 250, compute: 1 } },
+  { type: 'currencyEarned', target: 1500, gameId: 'any', desc: 'Earn $1.5K from minigames', reward: { dollars: 600, compute: 3 } },
+  { type: 'gachaPulls', target: 3, gameId: 'any', desc: 'Pull the gacha 3 times', reward: { dollars: 400, compute: 1 } },
+  { type: 'playCount', target: 2, gameId: 'bubble-pop', desc: 'Play Bubble Pop twice', reward: { dollars: 350, compute: 1 } },
+  { type: 'playCount', target: 2, gameId: 'load-balancer', desc: 'Play Load Balancer twice', reward: { dollars: 350, compute: 1 } },
+  { type: 'playCount', target: 2, gameId: 'slice-reflex', desc: 'Play Slice Reflex twice', reward: { dollars: 350, compute: 1 } },
+  { type: 'playCount', target: 2, gameId: 'pattern-match', desc: 'Play Pattern Match twice', reward: { dollars: 350, compute: 1 } },
+  { type: 'scoreThreshold', target: 50, gameId: 'any', desc: 'Score 50+ in a single round', reward: { dollars: 450, compute: 2 } },
 ]
 
 export interface QuestState {

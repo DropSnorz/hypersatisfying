@@ -13,7 +13,7 @@ export type BannerId = 'standard' | 'premium'
 export interface Banner {
   id: BannerId
   name: string
-  currency: 'shards' | 'cores'
+  currency: 'dollars' | 'compute'
   cost: number
   cost10: number
   oddsBonus: number
@@ -23,7 +23,7 @@ export const BANNERS: Record<BannerId, Banner> = {
   standard: {
     id: 'standard',
     name: 'STANDARD MATRIX',
-    currency: 'shards',
+    currency: 'dollars',
     cost: 150,
     cost10: 1350, // 10% discount on 10-pull
     // base odds straight from RARITIES weights
@@ -32,7 +32,7 @@ export const BANNERS: Record<BannerId, Banner> = {
   premium: {
     id: 'premium',
     name: 'SINGULARITY MATRIX',
-    currency: 'cores',
+    currency: 'compute',
     cost: 10,
     cost10: 90,
     // premium banner shifts weight toward the top tiers

@@ -98,8 +98,8 @@ p {
 .counter {
   font-size: 30px;
   font-weight: 700;
-  color: var(--shards);
-  text-shadow: var(--glow-md) var(--shards-glow);
+  color: var(--dollars);
+  text-shadow: var(--glow-md) var(--dollars-glow);
 }
 
 .lab-canvas {

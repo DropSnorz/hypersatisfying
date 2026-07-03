@@ -15,11 +15,11 @@ onMounted(() => quests.refreshIfStale())
 function claim(quest: Quest) {
   const reward = quests.claim(quest.id)
   if (!reward) return
-  game.addShards(reward.shards)
-  if (reward.cores) game.addCores(reward.cores)
+  game.addDollars(reward.dollars)
+  if (reward.compute) game.addCompute(reward.compute)
   sfx.coin()
-  toast(`+${formatNumber(reward.shards)} Shards`, { kind: 'shards' })
-  if (reward.cores) toast(`+${reward.cores} Cores`, { kind: 'cores' })
+  toast(`+$${formatNumber(reward.dollars)}`, { kind: 'dollars' })
+  if (reward.compute) toast(`+${reward.compute} Compute`, { kind: 'compute' })
 }
 </script>
 
@@ -107,8 +107,8 @@ function claim(quest: Quest) {
 .q-fill {
   height: 100%;
   border-radius: var(--radius-full);
-  background: linear-gradient(90deg, var(--shards), var(--mastery));
-  box-shadow: var(--glow-sm) var(--shards-glow);
+  background: linear-gradient(90deg, var(--dollars), var(--scale));
+  box-shadow: var(--glow-sm) var(--dollars-glow);
   transition: width var(--dur-med) var(--ease-out-quint);
 }
 

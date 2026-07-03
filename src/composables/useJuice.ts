@@ -6,7 +6,7 @@ import { reactive } from 'vue'
  * minigame; this handles the shared DOM/UI layer.
  */
 
-export type ToastKind = 'reward' | 'shards' | 'cores' | 'record' | 'error'
+export type ToastKind = 'reward' | 'dollars' | 'compute' | 'record' | 'error'
 
 export interface Toast {
   id: number

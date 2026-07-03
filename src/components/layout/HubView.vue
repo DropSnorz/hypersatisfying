@@ -10,8 +10,8 @@ const game = useGameStore()
 
 <template>
   <div class="hub">
-    <h1 class="title">HYPER<span class="accent">SATISFYING</span></h1>
-    <p class="subtitle">Pick a game. Feed the number.</p>
+    <h1 class="title">HYPER<span class="accent">SCALE</span></h1>
+    <p class="subtitle">Run the minigames. Scale the datacenter.</p>
 
     <div class="grid">
       <RouterLink
@@ -51,8 +51,8 @@ const game = useGameStore()
 }
 
 .accent {
-  color: var(--shards);
-  text-shadow: var(--glow-md) var(--shards-glow);
+  color: var(--dollars);
+  text-shadow: var(--glow-md) var(--dollars-glow);
 }
 
 .subtitle {

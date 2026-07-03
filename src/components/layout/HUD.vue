@@ -6,9 +6,9 @@ import { formatNumber, countUp } from '../../engine/numberFormat'
 const game = useGameStore()
 
 // displayed values lag behind store values via count-up animation
-const shownShards = ref(game.shards)
-const shownCores = ref(game.cores)
-const shownMastery = ref(game.mastery)
+const shownDollars = ref(game.dollars)
+const shownCompute = ref(game.compute)
+const shownScale = ref(game.scale)
 const bumping = ref('')
 
 function animate(shown: Ref<number>, target: number, key: string) {
@@ -20,24 +20,24 @@ function animate(shown: Ref<number>, target: number, key: string) {
   setTimeout(() => (bumping.value = ''), 350)
 }
 
-watch(() => game.shards, (v) => animate(shownShards, v, 'shards'))
-watch(() => game.cores, (v) => animate(shownCores, v, 'cores'))
-watch(() => game.mastery, (v) => animate(shownMastery, v, 'mastery'))
+watch(() => game.dollars, (v) => animate(shownDollars, v, 'dollars'))
+watch(() => game.compute, (v) => animate(shownCompute, v, 'compute'))
+watch(() => game.scale, (v) => animate(shownScale, v, 'scale'))
 </script>
 
 <template>
   <header class="hud glass">
-    <div class="currency" :class="{ bump: bumping === 'shards' }">
-      <span class="orb shards-orb"></span>
-      <span class="num value shards-text">{{ formatNumber(shownShards) }}</span>
+    <div class="currency" :class="{ bump: bumping === 'dollars' }">
+      <span class="orb dollars-orb"></span>
+      <span class="num value dollars-text">${{ formatNumber(shownDollars) }}</span>
     </div>
-    <div class="currency" :class="{ bump: bumping === 'cores' }">
-      <span class="orb cores-orb"></span>
-      <span class="num value cores-text">{{ formatNumber(shownCores) }}</span>
+    <div class="currency" :class="{ bump: bumping === 'compute' }">
+      <span class="orb compute-orb"></span>
+      <span class="num value compute-text">{{ formatNumber(shownCompute) }}</span>
     </div>
-    <div class="currency mastery" :class="{ bump: bumping === 'mastery' }">
-      <span class="label">MASTERY</span>
-      <span class="num value mastery-text">{{ formatNumber(shownMastery) }}</span>
+    <div class="currency scale" :class="{ bump: bumping === 'scale' }">
+      <span class="label">SCALE</span>
+      <span class="num value scale-text">{{ formatNumber(shownScale) }}</span>
     </div>
   </header>
 </template>
@@ -69,14 +69,14 @@ watch(() => game.mastery, (v) => animate(shownMastery, v, 'mastery'))
   border-radius: 50%;
 }
 
-.shards-orb {
-  background: var(--shards);
-  box-shadow: var(--glow-sm) var(--shards-glow);
+.dollars-orb {
+  background: var(--dollars);
+  box-shadow: var(--glow-sm) var(--dollars-glow);
 }
 
-.cores-orb {
-  background: var(--cores);
-  box-shadow: var(--glow-sm) var(--cores-glow);
+.compute-orb {
+  background: var(--compute);
+  box-shadow: var(--glow-sm) var(--compute-glow);
 }
 
 .value {
@@ -84,11 +84,11 @@ watch(() => game.mastery, (v) => animate(shownMastery, v, 'mastery'))
   font-size: 15px;
 }
 
-.shards-text { color: var(--shards); }
-.cores-text { color: var(--cores); }
-.mastery-text { color: var(--mastery); }
+.dollars-text { color: var(--dollars); }
+.compute-text { color: var(--compute); }
+.scale-text { color: var(--scale); }
 
-.mastery {
+.scale {
   margin-left: auto;
   flex-direction: column;
   align-items: flex-end;

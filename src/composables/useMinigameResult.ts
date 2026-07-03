@@ -14,8 +14,8 @@ export interface MinigameResultInput {
 }
 
 export interface MinigameResult {
-  shards: number
-  cores: number
+  dollars: number
+  compute: number
   isRecord: boolean
   multiplier: number
 }
@@ -33,29 +33,29 @@ export function useMinigameResult() {
 
   const reportResult = ({ gameId, score, stats = {} }: MinigameResultInput): MinigameResult => {
     const def = getGame(gameId)
-    const base = def?.rewardCurve(score, stats) ?? { shards: Math.floor(score), cores: 0 }
+    const base = def?.rewardCurve(score, stats) ?? { dollars: Math.floor(score), compute: 0 }
 
     const multiplier = game.globalMultiplier * inventory.boostMultiplier
-    const shards = Math.floor(base.shards * multiplier)
-    const cores = Math.floor(base.cores)
+    const dollars = Math.floor(base.dollars * multiplier)
+    const compute = Math.floor(base.compute)
 
-    game.addShards(shards)
-    if (cores > 0) game.addCores(cores)
+    game.addDollars(dollars)
+    if (compute > 0) game.addCompute(compute)
     const isRecord = game.recordGame(gameId, score)
 
     quests.notifyEvent({ type: 'playCount', gameId })
-    quests.notifyEvent({ type: 'currencyEarned', gameId, amount: shards })
+    quests.notifyEvent({ type: 'currencyEarned', gameId, amount: dollars })
     quests.notifyEvent({ type: 'scoreThreshold', gameId, amount: score })
 
     sfx.coin()
-    toast(`+${formatNumber(shards)} Shards`, { kind: 'shards' })
-    if (cores > 0) toast(`+${formatNumber(cores)} Cores`, { kind: 'cores' })
+    toast(`+$${formatNumber(dollars)}`, { kind: 'dollars' })
+    if (compute > 0) toast(`+${formatNumber(compute)} Compute`, { kind: 'compute' })
     if (isRecord && score > 0) {
       sfx.fanfare()
       toast('New personal best!', { kind: 'record' })
     }
 
-    return { shards, cores, isRecord, multiplier }
+    return { dollars, compute, isRecord, multiplier }
   }
 
   return { reportResult }

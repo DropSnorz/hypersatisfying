@@ -287,7 +287,7 @@ useGameLoop((dt) => {
 
       <div v-if="phase === 'ready'" class="overlay">
         <h3>SLICE REFLEX</h3>
-        <p>Swipe through shards before they fall.<br />3+ in one stroke = Core bonus. Avoid the red mines.</p>
+        <p>Swipe through dollars before they fall.<br />3+ in one stroke = Core bonus. Avoid the red mines.</p>
         <button class="cta" @click="startGame">START</button>
       </div>
 
@@ -295,8 +295,8 @@ useGameLoop((dt) => {
         <h3>BLADE COOLED</h3>
         <p class="final num">{{ formatNumber(score) }} pts</p>
         <p v-if="lastReward" class="reward">
-          <span class="shards-text num">+{{ formatNumber(lastReward.shards) }} Shards</span>
-          <span v-if="lastReward.cores" class="cores-text num"> +{{ lastReward.cores }} Cores</span>
+          <span class="dollars-text num">+${{ formatNumber(lastReward.dollars) }}</span>
+          <span v-if="lastReward.compute" class="compute-text num"> +{{ lastReward.compute }} Compute</span>
         </p>
         <button class="cta" @click="startGame">PLAY AGAIN</button>
       </div>

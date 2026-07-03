@@ -6,8 +6,8 @@ import { defineStore } from 'pinia'
  */
 
 export interface DailyReward {
-  shards: number
-  cores: number
+  dollars: number
+  compute: number
 }
 
 export interface DailyClaimResult extends DailyReward {
@@ -15,13 +15,13 @@ export interface DailyClaimResult extends DailyReward {
 }
 
 export const DAILY_CYCLE: DailyReward[] = [
-  { shards: 200, cores: 0 },
-  { shards: 300, cores: 1 },
-  { shards: 400, cores: 1 },
-  { shards: 500, cores: 2 },
-  { shards: 650, cores: 2 },
-  { shards: 800, cores: 3 },
-  { shards: 1000, cores: 8 }, // day 7 jackpot
+  { dollars: 200, compute: 0 },
+  { dollars: 300, compute: 1 },
+  { dollars: 400, compute: 1 },
+  { dollars: 500, compute: 2 },
+  { dollars: 650, compute: 2 },
+  { dollars: 800, compute: 3 },
+  { dollars: 1000, compute: 8 }, // day 7 jackpot
 ]
 
 function todayKey() {

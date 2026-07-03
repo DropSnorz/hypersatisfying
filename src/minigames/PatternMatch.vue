@@ -214,8 +214,8 @@ useGameLoop((dt) => {
         <h3>PATTERN BROKEN</h3>
         <p class="final num">Round {{ Math.max(round - 1, 0) }}</p>
         <p v-if="lastReward" class="reward">
-          <span class="shards-text num">+{{ formatNumber(lastReward.shards) }} Shards</span>
-          <span v-if="lastReward.cores" class="cores-text num"> +{{ lastReward.cores }} Cores</span>
+          <span class="dollars-text num">+${{ formatNumber(lastReward.dollars) }}</span>
+          <span v-if="lastReward.compute" class="compute-text num"> +{{ lastReward.compute }} Compute</span>
         </p>
         <button class="cta" @click="startGame">PLAY AGAIN</button>
       </div>

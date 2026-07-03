@@ -19,12 +19,12 @@ function claim() {
     open.value = false
     return
   }
-  game.addShards(reward.shards)
-  if (reward.cores) game.addCores(reward.cores)
+  game.addDollars(reward.dollars)
+  if (reward.compute) game.addCompute(reward.compute)
   claimed.value = reward
   sfx.fanfare()
-  toast(`+${formatNumber(reward.shards)} Shards`, { kind: 'shards' })
-  if (reward.cores) toast(`+${reward.cores} Cores`, { kind: 'cores' })
+  toast(`+$${formatNumber(reward.dollars)}`, { kind: 'dollars' })
+  if (reward.compute) toast(`+${reward.compute} Compute`, { kind: 'compute' })
   setTimeout(() => (open.value = false), 1400)
 }
 </script>
@@ -44,8 +44,8 @@ function claim() {
           :class="{ current: i === daily.cycleIndex && !claimed, past: i < daily.cycleIndex, jackpot: i === 6 }"
         >
           <span class="d-num">D{{ i + 1 }}</span>
-          <span class="d-shards num">{{ formatNumber(r.shards) }}</span>
-          <span v-if="r.cores" class="d-cores num">+{{ r.cores }}◆</span>
+          <span class="d-dollars num">${{ formatNumber(r.dollars) }}</span>
+          <span v-if="r.compute" class="d-compute num">+{{ r.compute }}◆</span>
         </div>
       </div>
       <button v-if="!claimed" class="cta" @click="claim">CLAIM</button>
@@ -116,8 +116,8 @@ h3 {
 }
 
 .day.current {
-  border-color: var(--shards);
-  box-shadow: var(--glow-sm) var(--shards-glow);
+  border-color: var(--dollars);
+  box-shadow: var(--glow-sm) var(--dollars-glow);
   animation: throb 1.4s ease-in-out infinite;
 }
 
@@ -136,14 +136,14 @@ h3 {
   letter-spacing: 0.1em;
 }
 
-.d-shards {
+.d-dollars {
   font-size: 10px;
-  color: var(--shards);
+  color: var(--dollars);
 }
 
-.d-cores {
+.d-compute {
   font-size: 9px;
-  color: var(--cores);
+  color: var(--compute);
 }
 
 .claimed-msg {

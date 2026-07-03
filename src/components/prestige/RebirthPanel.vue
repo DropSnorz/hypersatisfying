@@ -30,10 +30,10 @@ function rebirth() {
     </div>
 
     <div class="r-track">
-      <div class="r-fill" :style="{ width: `${Math.min(game.mastery / REBIRTH_AT, 1) * 100}%` }"></div>
+      <div class="r-fill" :style="{ width: `${Math.min(game.scale / REBIRTH_AT, 1) * 100}%` }"></div>
     </div>
     <p class="r-progress num">
-      {{ formatNumber(game.mastery) }} / {{ formatNumber(REBIRTH_AT) }} MASTERY
+      {{ formatNumber(game.scale) }} / {{ formatNumber(REBIRTH_AT) }} SCALE
     </p>
 
     <template v-if="game.canRebirth">
@@ -41,14 +41,14 @@ function rebirth() {
         INITIATE REBIRTH
       </button>
       <div v-else class="r-confirm">
-        <p>Shards reset to 0. Collection, Cores &amp; streaks survive.<br />Permanent +5% earnings. Forever.</p>
+        <p>Dollars reset to 0. Collection, Compute &amp; streaks survive.<br />Permanent +5% earnings. Forever.</p>
         <div class="r-actions">
           <button class="r-btn danger" @click="rebirth">CONFIRM</button>
           <button class="r-cancel" @click="confirming = false">ABORT</button>
         </div>
       </div>
     </template>
-    <p v-else class="r-hint">Reach {{ formatNumber(REBIRTH_AT) }} Mastery to unlock a permanent multiplier.</p>
+    <p v-else class="r-hint">Reach {{ formatNumber(REBIRTH_AT) }} Scale to unlock a permanent multiplier.</p>
   </section>
 </template>
 

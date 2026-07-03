@@ -20,11 +20,11 @@
   --text-dim: #5a6880;
 
   /* --- Currency / system accents --- */
-  --shards: #38d6ff;        /* soft currency — cyan */
-  --shards-glow: rgba(56, 214, 255, 0.45);
-  --cores: #ff4dd8;         /* premium currency — magenta */
-  --cores-glow: rgba(255, 77, 216, 0.45);
-  --mastery: #8b7bff;       /* mastery number — violet */
+  --dollars: #38d6ff;        /* soft currency — cyan */
+  --dollars-glow: rgba(56, 214, 255, 0.45);
+  --compute: #ff4dd8;         /* premium currency — magenta */
+  --compute-glow: rgba(255, 77, 216, 0.45);
+  --scale: #8b7bff;       /* scale number — violet */
   --prestige: #ffc83d;      /* prestige / legendary — gold */
   --prestige-glow: rgba(255, 200, 61, 0.5);
   --success: #3dffa0;

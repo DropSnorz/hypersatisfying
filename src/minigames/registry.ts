@@ -12,25 +12,25 @@ export const MINIGAMES: MinigameDef[] = [
     name: 'Bubble Pop',
     tagline: 'Pop matching clusters before time runs out',
     icon: '◉',
-    accent: 'var(--shards)',
+    accent: 'var(--dollars)',
     component: defineAsyncComponent(() => import('./BubblePop.vue')),
     free: true,
     rewardCurve: (score, stats) => ({
-      shards: score * 2,
-      cores: stats.goldenPops ? stats.goldenPops * 2 : 0,
+      dollars: score * 2,
+      compute: stats.goldenPops ? stats.goldenPops * 2 : 0,
     }),
   },
   {
-    id: 'rhythm-bar',
-    name: 'Rhythm Bar',
-    tagline: 'Nail the perfect timing window',
-    icon: '⏸',
+    id: 'load-balancer',
+    name: 'Load Balancer',
+    tagline: 'Flush the hottest rack at the perfect time',
+    icon: '☰',
     accent: 'var(--prestige)',
-    component: defineAsyncComponent(() => import('./RhythmBar.vue')),
+    component: defineAsyncComponent(() => import('./LoadBalancer.vue')),
     free: true,
     rewardCurve: (score, stats) => ({
-      shards: score * 3,
-      cores: Math.floor((stats.bestStreak ?? 0) / 10),
+      dollars: score * 3,
+      compute: Math.floor((stats.perfectRoutes ?? 0) / 8),
     }),
   },
   {
@@ -42,8 +42,8 @@ export const MINIGAMES: MinigameDef[] = [
     component: defineAsyncComponent(() => import('./SliceReflex.vue')),
     free: true,
     rewardCurve: (score, stats) => ({
-      shards: score * 2.5,
-      cores: stats.multiSlices ?? 0,
+      dollars: score * 2.5,
+      compute: stats.multiSlices ?? 0,
     }),
   },
   {
@@ -51,13 +51,13 @@ export const MINIGAMES: MinigameDef[] = [
     name: 'Pattern Match',
     tagline: 'Memorize. Repeat. Survive.',
     icon: '⊞',
-    accent: 'var(--mastery)',
+    accent: 'var(--scale)',
     component: defineAsyncComponent(() => import('./PatternMatch.vue')),
     free: true,
     rewardCurve: (score) => ({
       // superlinear per round survived — encourages "one more try"
-      shards: Math.floor(Math.pow(score, 1.6) * 10),
-      cores: score >= 8 ? Math.floor(score / 4) : 0,
+      dollars: Math.floor(Math.pow(score, 1.6) * 10),
+      compute: score >= 8 ? Math.floor(score / 4) : 0,
     }),
   },
   // Phase 4+: MergeOrbs, IdleBurstClicker (gacha-unlockable)

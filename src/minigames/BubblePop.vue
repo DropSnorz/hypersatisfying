@@ -252,7 +252,7 @@ useGameLoop((dt, time) => {
 
       <div v-if="phase === 'ready'" class="overlay">
         <h3>BUBBLE POP</h3>
-        <p>Tap bubbles to pop same-color chains.<br />Chains build combos. Gold pays Cores.</p>
+        <p>Tap bubbles to pop same-color chains.<br />Chains build combos. Gold pays Compute.</p>
         <button class="cta" @click="startGame">START</button>
       </div>
 
@@ -260,8 +260,8 @@ useGameLoop((dt, time) => {
         <h3>ROUND COMPLETE</h3>
         <p class="final num">{{ formatNumber(score) }} pts</p>
         <p v-if="lastReward" class="reward">
-          <span class="shards-text num">+{{ formatNumber(lastReward.shards) }} Shards</span>
-          <span v-if="lastReward.cores" class="cores-text num"> +{{ lastReward.cores }} Cores</span>
+          <span class="dollars-text num">+${{ formatNumber(lastReward.dollars) }}</span>
+          <span v-if="lastReward.compute" class="compute-text num"> +{{ lastReward.compute }} Compute</span>
         </p>
         <button class="cta" @click="startGame">PLAY AGAIN</button>
       </div>
