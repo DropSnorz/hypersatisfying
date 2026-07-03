@@ -9,7 +9,7 @@ const UNITS = [
   { value: 1e3, suffix: 'K' },
 ]
 
-export function formatNumber(n) {
+export function formatNumber(n: number | null | undefined): string {
   if (n == null || Number.isNaN(n)) return '0'
   const neg = n < 0
   const abs = Math.abs(n)
@@ -23,15 +23,21 @@ export function formatNumber(n) {
   return (neg ? '-' : '') + Math.floor(abs).toString()
 }
 
+export interface CountUpOptions {
+  duration?: number
+  onUpdate?: (value: number) => void
+  onComplete?: () => void
+}
+
 /**
  * Animates a numeric value from -> to, invoking onUpdate with the
  * current value each frame. Returns a cancel function.
  * Standalone rAF so it works outside any GameLoop (HUD, toasts).
  */
-export function countUp(from, to, { duration = 0.8, onUpdate, onComplete } = {}) {
+export function countUp(from: number, to: number, { duration = 0.8, onUpdate, onComplete }: CountUpOptions = {}) {
   const start = performance.now()
   let rafId = 0
-  const frame = (now) => {
+  const frame = (now: number) => {
     const p = Math.min((now - start) / (duration * 1000), 1)
     // easeOutQuint — fast start, satisfying settle
     const eased = 1 - Math.pow(1 - p, 5)

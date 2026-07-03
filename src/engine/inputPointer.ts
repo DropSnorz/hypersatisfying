@@ -3,8 +3,20 @@
  * coordinates, accounting for CSS scaling and devicePixelRatio-free
  * logical coordinates.
  */
-export function attachPointer(canvas, handlers = {}) {
-  const toLocal = (e) => {
+export interface LocalPoint {
+  x: number
+  y: number
+  id: number
+}
+
+export interface PointerHandlers {
+  onDown?: (p: LocalPoint) => void
+  onMove?: (p: LocalPoint) => void
+  onUp?: (p: LocalPoint) => void
+}
+
+export function attachPointer(canvas: HTMLCanvasElement, handlers: PointerHandlers = {}) {
+  const toLocal = (e: PointerEvent): LocalPoint => {
     const rect = canvas.getBoundingClientRect()
     return {
       x: ((e.clientX - rect.left) / rect.width) * canvas.width,
@@ -13,12 +25,12 @@ export function attachPointer(canvas, handlers = {}) {
     }
   }
 
-  const onDown = (e) => {
+  const onDown = (e: PointerEvent) => {
     canvas.setPointerCapture?.(e.pointerId)
     handlers.onDown?.(toLocal(e))
   }
-  const onMove = (e) => handlers.onMove?.(toLocal(e))
-  const onUp = (e) => handlers.onUp?.(toLocal(e))
+  const onMove = (e: PointerEvent) => handlers.onMove?.(toLocal(e))
+  const onUp = (e: PointerEvent) => handlers.onUp?.(toLocal(e))
 
   canvas.addEventListener('pointerdown', onDown)
   canvas.addEventListener('pointermove', onMove)

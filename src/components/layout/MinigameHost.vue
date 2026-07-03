@@ -1,8 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import { getGame } from '../../minigames/registry'
 
-const props = defineProps({ gameId: { type: String, required: true } })
+const props = defineProps<{ gameId: string }>()
 const def = computed(() => getGame(props.gameId))
 </script>
 

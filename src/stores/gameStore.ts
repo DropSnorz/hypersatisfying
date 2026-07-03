@@ -1,5 +1,20 @@
 import { defineStore } from 'pinia'
 
+export interface GameState {
+  shards: number
+  cores: number
+  mastery: number
+  lifetimeShards: number
+  prestige: {
+    rebirths: number
+    multiplier: number
+  }
+  stats: {
+    gamesPlayed: number
+    bestScores: Record<string, number>
+  }
+}
+
 /**
  * Central currency + progression state. Everything hangs off this.
  * - shards: soft currency (spendable)
@@ -7,7 +22,7 @@ import { defineStore } from 'pinia'
  * - mastery: the number that only ever goes up
  */
 export const useGameStore = defineStore('game', {
-  state: () => ({
+  state: (): GameState => ({
     shards: 0,
     cores: 0,
     mastery: 0,
@@ -18,7 +33,7 @@ export const useGameStore = defineStore('game', {
     },
     stats: {
       gamesPlayed: 0,
-      bestScores: {}, // gameId -> best score
+      bestScores: {},
     },
   }),
 
@@ -29,7 +44,7 @@ export const useGameStore = defineStore('game', {
   },
 
   actions: {
-    addShards(amount) {
+    addShards(amount: number): number {
       const gained = Math.floor(amount)
       this.shards += gained
       this.lifetimeShards += gained
@@ -37,25 +52,25 @@ export const useGameStore = defineStore('game', {
       return gained
     },
 
-    addCores(amount) {
+    addCores(amount: number): number {
       const gained = Math.floor(amount)
       this.cores += gained
       return gained
     },
 
-    spendShards(amount) {
+    spendShards(amount: number): boolean {
       if (this.shards < amount) return false
       this.shards -= amount
       return true
     },
 
-    spendCores(amount) {
+    spendCores(amount: number): boolean {
       if (this.cores < amount) return false
       this.cores -= amount
       return true
     },
 
-    recordGame(gameId, score) {
+    recordGame(gameId: string, score: number): boolean {
       this.stats.gamesPlayed++
       const best = this.stats.bestScores[gameId] ?? 0
       const isRecord = score > best
@@ -63,7 +78,7 @@ export const useGameStore = defineStore('game', {
       return isRecord
     },
 
-    rebirth() {
+    rebirth(): boolean {
       if (!this.canRebirth) return false
       this.shards = 0
       this.prestige.rebirths++

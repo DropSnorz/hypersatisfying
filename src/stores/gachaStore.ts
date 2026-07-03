@@ -1,14 +1,25 @@
 import { defineStore } from 'pinia'
 import { createRng, weightedPick } from '../engine/rng'
-import { RARITIES, itemsOfRarity } from '../gacha/itemPool'
+import { RARITIES, itemsOfRarity, type GachaItem, type RarityKey } from '../gacha/itemPool'
 
 const rng = createRng()
 
 const SOFT_PITY_START = 40
 const HARD_PITY = 50
-const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary']
+const RARITY_ORDER: RarityKey[] = ['common', 'uncommon', 'rare', 'epic', 'legendary']
 
-export const BANNERS = {
+export type BannerId = 'standard' | 'premium'
+
+export interface Banner {
+  id: BannerId
+  name: string
+  currency: 'shards' | 'cores'
+  cost: number
+  cost10: number
+  oddsBonus: number
+}
+
+export const BANNERS: Record<BannerId, Banner> = {
   standard: {
     id: 'standard',
     name: 'STANDARD MATRIX',
@@ -29,7 +40,7 @@ export const BANNERS = {
   },
 }
 
-function rollRarity(banner, pity) {
+function rollRarity(banner: Banner, pity: number): RarityKey {
   // hard pity: guaranteed epic+ at HARD_PITY
   if (pity >= HARD_PITY - 1) {
     return rng() < 0.2 ? 'legendary' : 'epic'
@@ -47,22 +58,34 @@ function rollRarity(banner, pity) {
   return weightedPick(rng, entries).key
 }
 
+export interface PullHistoryEntry {
+  itemId: string
+  rarity: RarityKey
+  banner: BannerId
+  at: number
+}
+
+export interface GachaState {
+  pity: Record<BannerId, number>
+  totalPulls: number
+  history: PullHistoryEntry[]
+}
+
 export const useGachaStore = defineStore('gacha', {
-  state: () => ({
+  state: (): GachaState => ({
     pity: { standard: 0, premium: 0 },
     totalPulls: 0,
-    history: [], // last 50: { itemId, rarity, banner, at }
+    history: [],
   }),
 
   actions: {
     /**
      * Resolve `count` pulls on a banner. Pure state change — the
      * caller (GachaScreen) handles currency spend and reveal UI.
-     * Returns array of { ...item, isNew }.
      */
-    resolvePulls(bannerId, count) {
+    resolvePulls(bannerId: BannerId, count: number): GachaItem[] {
       const banner = BANNERS[bannerId]
-      const results = []
+      const results: GachaItem[] = []
       for (let i = 0; i < count; i++) {
         const rarity = rollRarity(banner, this.pity[bannerId])
         const isEpicPlus = rarity === 'epic' || rarity === 'legendary'

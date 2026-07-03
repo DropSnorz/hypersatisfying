@@ -1,11 +1,14 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
-import { RARITIES } from '../../gacha/itemPool'
+import { RARITIES, type GachaItem } from '../../gacha/itemPool'
 
-const props = defineProps({
-  item: { type: Object, required: true },
-  revealed: { type: Boolean, default: true },
-  big: { type: Boolean, default: false },
+const props = withDefaults(defineProps<{
+  item: GachaItem
+  revealed?: boolean
+  big?: boolean
+}>(), {
+  revealed: true,
+  big: false,
 })
 
 const rarity = computed(() => RARITIES[props.item.rarity])

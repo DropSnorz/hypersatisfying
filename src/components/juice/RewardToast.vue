@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { useJuice } from '../../composables/useJuice'
 
 const { juiceState } = useJuice()

@@ -1,15 +1,20 @@
+export type GameLoopCallback = (dt: number, time: number) => void
+
 /**
  * requestAnimationFrame wrapper with delta time.
  * Auto-pauses while the tab is hidden so dt never explodes
  * after a background stint.
  */
 export class GameLoop {
-  constructor(callback) {
+  callback: GameLoopCallback
+  running = false
+  paused = false
+  private _rafId = 0
+  private _lastTime = 0
+  private _onVisibility: () => void
+
+  constructor(callback: GameLoopCallback) {
     this.callback = callback
-    this.running = false
-    this.paused = false
-    this._rafId = 0
-    this._lastTime = 0
     this._onVisibility = () => {
       if (document.hidden) this._lastTime = 0
     }
@@ -21,7 +26,7 @@ export class GameLoop {
     this.paused = false
     this._lastTime = 0
     document.addEventListener('visibilitychange', this._onVisibility)
-    const tick = (time) => {
+    const tick = (time: number) => {
       if (!this.running) return
       this._rafId = requestAnimationFrame(tick)
       if (this.paused) return

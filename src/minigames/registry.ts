@@ -1,11 +1,12 @@
 import { defineAsyncComponent } from 'vue'
+import type { MinigameDef, MinigameId } from './types'
 
 /**
  * Central manifest for the minigame roster: metadata, reward curves,
  * and unlock gating in one place so balance tuning never touches
  * game logic.
  */
-export const MINIGAMES = [
+export const MINIGAMES: MinigameDef[] = [
   {
     id: 'bubble-pop',
     name: 'Bubble Pop',
@@ -62,6 +63,6 @@ export const MINIGAMES = [
   // Phase 4+: MergeOrbs, IdleBurstClicker (gacha-unlockable)
 ]
 
-export function getGame(gameId) {
+export function getGame(gameId: MinigameId | string): MinigameDef | undefined {
   return MINIGAMES.find((g) => g.id === gameId)
 }

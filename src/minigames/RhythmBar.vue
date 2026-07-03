@@ -1,28 +1,31 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useGameLoop } from '../composables/useGameLoop'
-import { useMinigameResult } from '../composables/useMinigameResult'
+import { useMinigameResult, type MinigameResult } from '../composables/useMinigameResult'
 import { ParticleSystem } from '../engine/particles'
 import { ScreenShake } from '../engine/screenShake'
 import { attachPointer } from '../engine/inputPointer'
 import { sfx } from '../engine/soundManager'
 import { formatNumber } from '../engine/numberFormat'
 
+type Phase = 'ready' | 'playing' | 'over'
+type Judgement = '' | 'PERFECT' | 'GOOD' | 'MISS'
+
 const LIVES = 3
 
-const canvasEl = ref(null)
+const canvasEl = ref<HTMLCanvasElement | null>(null)
 const score = ref(0)
 const streak = ref(0)
 const lives = ref(LIVES)
-const phase = ref('ready')
-const lastReward = ref(null)
-const judgement = ref('') // PERFECT / GOOD / MISS flash
+const phase = ref<Phase>('ready')
+const lastReward = ref<MinigameResult | null>(null)
+const judgement = ref<Judgement>('') // PERFECT / GOOD / MISS flash
 
 const { reportResult } = useMinigameResult()
 
 const particles = new ParticleSystem()
 const shake = new ScreenShake()
-let ctx = null
+let ctx: CanvasRenderingContext2D | null = null
 let markerT = 0 // 0..1 position along the bar
 let dir = 1
 let speed = 0.55 // bar sweeps per second, ramps up
@@ -38,7 +41,7 @@ function newZone() {
 }
 
 function judge() {
-  if (phase.value !== 'playing') return
+  if (phase.value !== 'playing' || !ctx) return
   const dist = Math.abs(markerT - zoneCenter)
   const canvas = ctx.canvas
   const x = canvas.width * 0.08 + markerT * canvas.width * 0.84
@@ -103,6 +106,7 @@ function endGame() {
 
 onMounted(() => {
   const canvas = canvasEl.value
+  if (!canvas) return
   canvas.width = canvas.clientWidth
   canvas.height = Math.min(canvas.clientWidth * 1.1, 480)
   ctx = canvas.getContext('2d')
@@ -111,7 +115,8 @@ onMounted(() => {
 
 useGameLoop((dt, time) => {
   if (!ctx) return
-  const { width, height } = ctx.canvas
+  const ctx2d = ctx
+  const { width, height } = ctx2d.canvas
 
   if (phase.value === 'playing') {
     markerT += dir * speed * dt
@@ -123,70 +128,70 @@ useGameLoop((dt, time) => {
   shake.update(dt)
   if (flashT > 0) flashT = Math.max(flashT - dt * 3, 0)
 
-  ctx.clearRect(0, 0, width, height)
-  ctx.save()
-  ctx.translate(shake.x, shake.y)
+  ctx2d.clearRect(0, 0, width, height)
+  ctx2d.save()
+  ctx2d.translate(shake.x, shake.y)
 
   const barY = height / 2
   const barX0 = width * 0.08
   const barW = width * 0.84
 
   // bar track
-  ctx.lineCap = 'round'
-  ctx.lineWidth = 6
-  ctx.strokeStyle = 'rgba(140, 180, 255, 0.15)'
-  ctx.beginPath()
-  ctx.moveTo(barX0, barY)
-  ctx.lineTo(barX0 + barW, barY)
-  ctx.stroke()
+  ctx2d.lineCap = 'round'
+  ctx2d.lineWidth = 6
+  ctx2d.strokeStyle = 'rgba(140, 180, 255, 0.15)'
+  ctx2d.beginPath()
+  ctx2d.moveTo(barX0, barY)
+  ctx2d.lineTo(barX0 + barW, barY)
+  ctx2d.stroke()
 
   // target zone (glows on perfect via flashT)
   const zx0 = barX0 + (zoneCenter - zoneWidth / 2) * barW
   const zw = zoneWidth * barW
-  ctx.lineWidth = 18 + flashT * 14
-  ctx.strokeStyle = `rgba(255, 200, 61, ${0.35 + flashT * 0.55})`
-  ctx.shadowColor = '#ffc83d'
-  ctx.shadowBlur = 12 + flashT * 30
-  ctx.beginPath()
-  ctx.moveTo(zx0, barY)
-  ctx.lineTo(zx0 + zw, barY)
-  ctx.stroke()
-  ctx.shadowBlur = 0
+  ctx2d.lineWidth = 18 + flashT * 14
+  ctx2d.strokeStyle = `rgba(255, 200, 61, ${0.35 + flashT * 0.55})`
+  ctx2d.shadowColor = '#ffc83d'
+  ctx2d.shadowBlur = 12 + flashT * 30
+  ctx2d.beginPath()
+  ctx2d.moveTo(zx0, barY)
+  ctx2d.lineTo(zx0 + zw, barY)
+  ctx2d.stroke()
+  ctx2d.shadowBlur = 0
 
   // perfect core of the zone
-  ctx.lineWidth = 18 + flashT * 14
-  ctx.strokeStyle = `rgba(255, 255, 255, ${0.25 + flashT * 0.5})`
+  ctx2d.lineWidth = 18 + flashT * 14
+  ctx2d.strokeStyle = `rgba(255, 255, 255, ${0.25 + flashT * 0.5})`
   const px0 = barX0 + (zoneCenter - zoneWidth * 0.25 / 2) * barW
-  ctx.beginPath()
-  ctx.moveTo(px0, barY)
-  ctx.lineTo(px0 + zoneWidth * 0.25 * barW, barY)
-  ctx.stroke()
+  ctx2d.beginPath()
+  ctx2d.moveTo(px0, barY)
+  ctx2d.lineTo(px0 + zoneWidth * 0.25 * barW, barY)
+  ctx2d.stroke()
 
   // marker
   const mx = barX0 + markerT * barW
   const pulse = 1 + Math.sin(time * 10) * 0.08
-  ctx.beginPath()
-  ctx.arc(mx, barY, 13 * pulse, 0, Math.PI * 2)
-  ctx.fillStyle = '#38d6ff'
-  ctx.shadowColor = '#38d6ff'
-  ctx.shadowBlur = 22
-  ctx.fill()
-  ctx.shadowBlur = 0
+  ctx2d.beginPath()
+  ctx2d.arc(mx, barY, 13 * pulse, 0, Math.PI * 2)
+  ctx2d.fillStyle = '#38d6ff'
+  ctx2d.shadowColor = '#38d6ff'
+  ctx2d.shadowBlur = 22
+  ctx2d.fill()
+  ctx2d.shadowBlur = 0
 
   // streak meter heats up under the bar
   if (streak.value > 0) {
     const heat = Math.min(streak.value / 15, 1)
-    ctx.fillStyle = `rgba(255, ${200 - heat * 120}, ${61 * (1 - heat)}, ${0.5 + heat * 0.5})`
-    ctx.font = `700 ${18 + heat * 14}px 'JetBrains Mono', monospace`
-    ctx.textAlign = 'center'
-    ctx.shadowColor = '#ffc83d'
-    ctx.shadowBlur = heat * 24
-    ctx.fillText(`×${streak.value}`, width / 2, barY + 70)
-    ctx.shadowBlur = 0
+    ctx2d.fillStyle = `rgba(255, ${200 - heat * 120}, ${61 * (1 - heat)}, ${0.5 + heat * 0.5})`
+    ctx2d.font = `700 ${18 + heat * 14}px 'JetBrains Mono', monospace`
+    ctx2d.textAlign = 'center'
+    ctx2d.shadowColor = '#ffc83d'
+    ctx2d.shadowBlur = heat * 24
+    ctx2d.fillText(`×${streak.value}`, width / 2, barY + 70)
+    ctx2d.shadowBlur = 0
   }
 
-  particles.render(ctx)
-  ctx.restore()
+  particles.render(ctx2d)
+  ctx2d.restore()
 })
 </script>
 

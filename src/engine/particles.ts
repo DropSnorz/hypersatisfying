@@ -5,7 +5,26 @@
 
 const POOL_SIZE = 600
 
-function makeParticle() {
+export type ParticleShape = 'circle' | 'square' | 'spark'
+
+interface Particle {
+  active: boolean
+  x: number
+  y: number
+  vx: number
+  vy: number
+  life: number
+  maxLife: number
+  size: number
+  color: string
+  gravity: number
+  drag: number
+  shape: ParticleShape
+  rotation: number
+  spin: number
+}
+
+function makeParticle(): Particle {
   return {
     active: false,
     x: 0, y: 0,
@@ -15,19 +34,39 @@ function makeParticle() {
     color: '#fff',
     gravity: 0,
     drag: 1,
-    shape: 'circle', // 'circle' | 'square' | 'spark'
+    shape: 'circle',
     rotation: 0,
     spin: 0,
   }
 }
 
+export interface BurstConfig {
+  count?: number
+  colors?: string[]
+  speed?: number
+  speedVariance?: number
+  size?: number
+  sizeVariance?: number
+  life?: number
+  gravity?: number
+  drag?: number
+  shape?: ParticleShape
+}
+
+export interface ConfettiConfig {
+  count?: number
+  colors?: string[]
+}
+
 export class ParticleSystem {
+  private pool: Particle[]
+  private _cursor = 0
+
   constructor() {
     this.pool = Array.from({ length: POOL_SIZE }, makeParticle)
-    this._cursor = 0
   }
 
-  _next() {
+  private _next(): Particle {
     // linear scan from cursor; recycles oldest when saturated
     for (let i = 0; i < POOL_SIZE; i++) {
       const p = this.pool[(this._cursor + i) % POOL_SIZE]
@@ -44,7 +83,7 @@ export class ParticleSystem {
   /**
    * Radial burst — the bread-and-butter pop effect.
    */
-  burst(x, y, {
+  burst(x: number, y: number, {
     count = 12,
     colors = ['#38d6ff'],
     speed = 180,
@@ -55,7 +94,7 @@ export class ParticleSystem {
     gravity = 300,
     drag = 0.92,
     shape = 'circle',
-  } = {}) {
+  }: BurstConfig = {}) {
     for (let i = 0; i < count; i++) {
       const p = this._next()
       const angle = Math.random() * Math.PI * 2
@@ -80,7 +119,7 @@ export class ParticleSystem {
   /**
    * Confetti rain from a point — celebration moments.
    */
-  confetti(x, y, { count = 40, colors = ['#38d6ff', '#ff4dd8', '#ffc83d', '#3dffa0'] } = {}) {
+  confetti(x: number, y: number, { count = 40, colors = ['#38d6ff', '#ff4dd8', '#ffc83d', '#3dffa0'] }: ConfettiConfig = {}) {
     this.burst(x, y, {
       count,
       colors,
@@ -94,7 +133,7 @@ export class ParticleSystem {
     })
   }
 
-  update(dt) {
+  update(dt: number) {
     for (const p of this.pool) {
       if (!p.active) continue
       p.life -= dt
@@ -111,7 +150,7 @@ export class ParticleSystem {
     }
   }
 
-  render(ctx) {
+  render(ctx: CanvasRenderingContext2D) {
     for (const p of this.pool) {
       if (!p.active) continue
       const alpha = Math.min(p.life / p.maxLife, 1)

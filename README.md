@@ -13,7 +13,8 @@ npm install
 npm run dev
 ```
 
-Progress persists in localStorage.
+Progress persists in localStorage. `npm run build` type-checks (`vue-tsc -b`)
+before bundling; run `npm run typecheck` on its own to just check types.
 
 ## The loop
 
@@ -40,14 +41,14 @@ Progress persists in localStorage.
 
 ## Architecture
 
-- **Vue 3 + Pinia (persisted)** for the meta layer: HUD, hub, gacha,
-  quests, dailies. Reactive state never touches per-frame game state.
-- **Canvas + plain JS engine** (`src/engine/`) for gameplay: rAF game
-  loop, pooled particles, tweens, screen shake, seeded RNG, synthesized
-  SFX. Rule: if two minigames need the same effect, it lives in
-  `engine/`, not a component.
-- **One reward funnel** (`src/composables/useMinigameResult.js`):
-  score → reward curve (`src/minigames/registry.js`) → prestige/gacha
+- **Vue 3 + TypeScript + Pinia (persisted)** for the meta layer: HUD, hub,
+  gacha, quests, dailies. Reactive state never touches per-frame game state.
+- **Canvas + typed engine** (`src/engine/`) for gameplay: rAF game loop,
+  pooled particles, tweens, screen shake, seeded RNG, synthesized SFX.
+  Rule: if two minigames need the same effect, it lives in `engine/`, not
+  a component.
+- **One reward funnel** (`src/composables/useMinigameResult.ts`):
+  score → reward curve (`src/minigames/registry.ts`) → prestige/gacha
   multipliers → store commit → quest events → toasts/SFX.
 
 Dev playground for engine primitives: `/#/devlab`.

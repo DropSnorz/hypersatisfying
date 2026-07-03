@@ -1,5 +1,5 @@
-<script setup>
-import { ref, watch } from 'vue'
+<script setup lang="ts">
+import { ref, watch, type Ref } from 'vue'
 import { useGameStore } from '../../stores/gameStore'
 import { formatNumber, countUp } from '../../engine/numberFormat'
 
@@ -11,7 +11,7 @@ const shownCores = ref(game.cores)
 const shownMastery = ref(game.mastery)
 const bumping = ref('')
 
-function animate(shown, target, key) {
+function animate(shown: Ref<number>, target: number, key: string) {
   countUp(shown.value, target, {
     duration: 0.7,
     onUpdate: (v) => (shown.value = v),

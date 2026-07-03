@@ -1,7 +1,7 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
 import HubView from '../components/layout/HubView.vue'
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   { path: '/', name: 'hub', component: HubView },
   {
     path: '/play/:gameId',

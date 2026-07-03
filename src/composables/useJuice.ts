@@ -6,15 +6,33 @@ import { reactive } from 'vue'
  * minigame; this handles the shared DOM/UI layer.
  */
 
+export type ToastKind = 'reward' | 'shards' | 'cores' | 'record' | 'error'
+
+export interface Toast {
+  id: number
+  message: string
+  kind: ToastKind
+}
+
+export interface ToastOptions {
+  kind?: ToastKind
+  duration?: number
+}
+
+interface JuiceState {
+  toasts: Toast[]
+  shaking: boolean
+}
+
 let toastId = 0
 
-const juiceState = reactive({
-  toasts: [], // { id, message, kind }
+const juiceState: JuiceState = reactive({
+  toasts: [],
   shaking: false,
 })
 
 export function useJuice() {
-  const toast = (message, { kind = 'reward', duration = 2200 } = {}) => {
+  const toast = (message: string, { kind = 'reward', duration = 2200 }: ToastOptions = {}) => {
     const id = ++toastId
     juiceState.toasts.push({ id, message, kind })
     setTimeout(() => {

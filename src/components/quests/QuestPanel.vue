@@ -1,6 +1,6 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted } from 'vue'
-import { useQuestStore } from '../../stores/questStore'
+import { useQuestStore, type Quest } from '../../stores/questStore'
 import { useGameStore } from '../../stores/gameStore'
 import { useJuice } from '../../composables/useJuice'
 import { formatNumber } from '../../engine/numberFormat'
@@ -12,7 +12,7 @@ const { toast } = useJuice()
 
 onMounted(() => quests.refreshIfStale())
 
-function claim(quest) {
+function claim(quest: Quest) {
   const reward = quests.claim(quest.id)
   if (!reward) return
   game.addShards(reward.shards)

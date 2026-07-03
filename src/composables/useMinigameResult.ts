@@ -3,8 +3,22 @@ import { useInventoryStore } from '../stores/inventoryStore'
 import { useQuestStore } from '../stores/questStore'
 import { useJuice } from './useJuice'
 import { getGame } from '../minigames/registry'
+import type { MinigameId, MinigameStats } from '../minigames/types'
 import { formatNumber } from '../engine/numberFormat'
 import { sfx } from '../engine/soundManager'
+
+export interface MinigameResultInput {
+  gameId: MinigameId
+  score: number
+  stats?: MinigameStats
+}
+
+export interface MinigameResult {
+  shards: number
+  cores: number
+  isRecord: boolean
+  multiplier: number
+}
 
 /**
  * The single funnel every minigame reports through:
@@ -17,7 +31,7 @@ export function useMinigameResult() {
   const quests = useQuestStore()
   const { toast } = useJuice()
 
-  const reportResult = ({ gameId, score, stats = {} }) => {
+  const reportResult = ({ gameId, score, stats = {} }: MinigameResultInput): MinigameResult => {
     const def = getGame(gameId)
     const base = def?.rewardCurve(score, stats) ?? { shards: Math.floor(score), cores: 0 }
 

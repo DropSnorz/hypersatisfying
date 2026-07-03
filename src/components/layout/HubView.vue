@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { MINIGAMES } from '../../minigames/registry'
 import { useGameStore } from '../../stores/gameStore'
 import { formatNumber } from '../../engine/numberFormat'

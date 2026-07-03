@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import HUD from './components/layout/HUD.vue'
 import NavDock from './components/layout/NavDock.vue'
 import RewardToast from './components/juice/RewardToast.vue'

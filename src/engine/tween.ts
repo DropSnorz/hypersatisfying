@@ -4,7 +4,9 @@
  * needs spring/overshoot feel beyond CSS transitions.
  */
 
-export const easings = {
+export type Easing = (t: number) => number
+
+export const easings: Record<string, Easing> = {
   linear: (t) => t,
   easeOutQuad: (t) => 1 - (1 - t) * (1 - t),
   easeOutCubic: (t) => 1 - Math.pow(1 - t, 3),
@@ -22,11 +24,31 @@ export const easings = {
   },
 }
 
+export interface TweenConfig {
+  from?: number
+  to?: number
+  duration?: number
+  easing?: Easing
+  delay?: number
+  onUpdate?: (value: number, progress: number) => void
+  onComplete?: () => void
+}
+
 /**
  * A single tween. Call update(dt) each frame; returns false when done.
  */
 export class Tween {
-  constructor({ from = 0, to = 1, duration = 0.3, easing = easings.easeOutCubic, delay = 0, onUpdate, onComplete }) {
+  from: number
+  to: number
+  duration: number
+  easing: Easing
+  delay: number
+  onUpdate?: (value: number, progress: number) => void
+  onComplete?: () => void
+  elapsed = 0
+  done = false
+
+  constructor({ from = 0, to = 1, duration = 0.3, easing = easings.easeOutCubic, delay = 0, onUpdate, onComplete }: TweenConfig) {
     this.from = from
     this.to = to
     this.duration = duration
@@ -34,11 +56,9 @@ export class Tween {
     this.delay = delay
     this.onUpdate = onUpdate
     this.onComplete = onComplete
-    this.elapsed = 0
-    this.done = false
   }
 
-  update(dt) {
+  update(dt: number): boolean {
     if (this.done) return false
     this.elapsed += dt
     const t = this.elapsed - this.delay
@@ -59,17 +79,15 @@ export class Tween {
  * Runs a set of tweens; call update(dt) once per frame from a GameLoop.
  */
 export class TweenGroup {
-  constructor() {
-    this.tweens = []
-  }
+  tweens: Tween[] = []
 
-  add(config) {
+  add(config: TweenConfig | Tween): Tween {
     const tween = config instanceof Tween ? config : new Tween(config)
     this.tweens.push(tween)
     return tween
   }
 
-  update(dt) {
+  update(dt: number) {
     this.tweens = this.tweens.filter((t) => t.update(dt))
   }
 

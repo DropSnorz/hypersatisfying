@@ -1,6 +1,6 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
-import { useDailyStore, DAILY_CYCLE } from '../../stores/dailyStore'
+import { useDailyStore, DAILY_CYCLE, type DailyClaimResult } from '../../stores/dailyStore'
 import { useGameStore } from '../../stores/gameStore'
 import { useJuice } from '../../composables/useJuice'
 import { formatNumber } from '../../engine/numberFormat'
@@ -11,7 +11,7 @@ const game = useGameStore()
 const { toast } = useJuice()
 
 const open = ref(daily.canClaim)
-const claimed = ref(null)
+const claimed = ref<DailyClaimResult | null>(null)
 
 function claim() {
   const reward = daily.claim()

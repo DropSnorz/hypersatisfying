@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useGameLoop } from '../../composables/useGameLoop'
 import { ParticleSystem } from '../../engine/particles'
@@ -12,16 +12,17 @@ import { formatNumber, countUp } from '../../engine/numberFormat'
  * Dev-only playground (/#/devlab): visually verifies each engine
  * primitive in isolation. Not linked from the UI.
  */
-const canvasEl = ref(null)
+const canvasEl = ref<HTMLCanvasElement | null>(null)
 const counter = ref(0)
 const particles = new ParticleSystem()
 const shake = new ScreenShake()
 const tweens = new TweenGroup()
-let ctx = null
+let ctx: CanvasRenderingContext2D | null = null
 let pulse = 1
 
 onMounted(() => {
   const canvas = canvasEl.value
+  if (!canvas) return
   canvas.width = canvas.clientWidth
   canvas.height = 360
   ctx = canvas.getContext('2d')
@@ -44,26 +45,27 @@ onMounted(() => {
 
 useGameLoop((dt) => {
   if (!ctx) return
+  const context = ctx
   particles.update(dt)
   shake.update(dt)
   tweens.update(dt)
 
-  const { width, height } = ctx.canvas
-  ctx.clearRect(0, 0, width, height)
-  ctx.save()
-  ctx.translate(shake.x, shake.y)
+  const { width, height } = context.canvas
+  context.clearRect(0, 0, width, height)
+  context.save()
+  context.translate(shake.x, shake.y)
 
   // pulsing center orb to verify tween/elastic feel
-  ctx.beginPath()
-  ctx.arc(width / 2, height / 2, 26 * pulse, 0, Math.PI * 2)
-  ctx.fillStyle = '#38d6ff'
-  ctx.shadowColor = '#38d6ff'
-  ctx.shadowBlur = 30
-  ctx.fill()
-  ctx.shadowBlur = 0
+  context.beginPath()
+  context.arc(width / 2, height / 2, 26 * pulse, 0, Math.PI * 2)
+  context.fillStyle = '#38d6ff'
+  context.shadowColor = '#38d6ff'
+  context.shadowBlur = 30
+  context.fill()
+  context.shadowBlur = 0
 
-  particles.render(ctx)
-  ctx.restore()
+  particles.render(context)
+  context.restore()
 })
 </script>
 

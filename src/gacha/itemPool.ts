@@ -2,7 +2,27 @@
  * The full gacha item pool. Boost values are small and the combined
  * boost is capped in inventoryStore so playtime always dominates.
  */
-export const RARITIES = {
+export type RarityKey = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'
+export type ItemType = 'cosmetic' | 'boost'
+
+export interface RarityInfo {
+  key: RarityKey
+  label: string
+  color: string
+  hex: string
+  weight: number
+}
+
+export interface GachaItem {
+  itemId: string
+  name: string
+  rarity: RarityKey
+  type: ItemType
+  desc: string
+  boost?: number
+}
+
+export const RARITIES: Record<RarityKey, RarityInfo> = {
   common: { key: 'common', label: 'STANDARD', color: 'var(--rarity-common)', hex: '#a8b4c8', weight: 60 },
   uncommon: { key: 'uncommon', label: 'ENHANCED', color: 'var(--rarity-uncommon)', hex: '#4ade80', weight: 25 },
   rare: { key: 'rare', label: 'PRIME', color: 'var(--rarity-rare)', hex: '#38b6ff', weight: 10 },
@@ -10,7 +30,7 @@ export const RARITIES = {
   legendary: { key: 'legendary', label: 'SINGULARITY', color: 'var(--rarity-legendary)', hex: '#ffc83d', weight: 1 },
 }
 
-export const ITEM_POOL = [
+export const ITEM_POOL: GachaItem[] = [
   // --- common ---
   { itemId: 'chip-blue', name: 'Blue Chip', rarity: 'common', type: 'cosmetic', desc: 'A humble data chip.' },
   { itemId: 'chip-gray', name: 'Gray Chip', rarity: 'common', type: 'cosmetic', desc: 'Standard issue silicon.' },
@@ -32,6 +52,6 @@ export const ITEM_POOL = [
   { itemId: 'crown-infinite', name: 'Infinite Crown', rarity: 'legendary', type: 'cosmetic', desc: 'Worn by no one, ever.' },
 ]
 
-export function itemsOfRarity(rarity) {
+export function itemsOfRarity(rarity: RarityKey): GachaItem[] {
   return ITEM_POOL.filter((i) => i.rarity === rarity)
 }

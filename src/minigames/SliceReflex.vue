@@ -1,36 +1,57 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useGameLoop } from '../composables/useGameLoop'
-import { useMinigameResult } from '../composables/useMinigameResult'
+import { useMinigameResult, type MinigameResult } from '../composables/useMinigameResult'
 import { ParticleSystem } from '../engine/particles'
 import { ScreenShake } from '../engine/screenShake'
-import { attachPointer } from '../engine/inputPointer'
+import { attachPointer, type LocalPoint } from '../engine/inputPointer'
 import { sfx } from '../engine/soundManager'
 import { formatNumber } from '../engine/numberFormat'
+
+interface SliceObject {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  r: number
+  color: string
+  bomb: boolean
+  rotation: number
+  spin: number
+  sliced?: boolean
+}
+
+interface TrailPoint {
+  x: number
+  y: number
+  t: number
+}
+
+type Phase = 'ready' | 'playing' | 'over'
 
 const GAME_LENGTH = 60
 const COLORS = ['#38d6ff', '#ff4dd8', '#8b7bff', '#3dffa0']
 
-const canvasEl = ref(null)
+const canvasEl = ref<HTMLCanvasElement | null>(null)
 const score = ref(0)
 const timeLeft = ref(GAME_LENGTH)
 const combo = ref(0)
-const phase = ref('ready')
-const lastReward = ref(null)
+const phase = ref<Phase>('ready')
+const lastReward = ref<MinigameResult | null>(null)
 
 const { reportResult } = useMinigameResult()
 
 const particles = new ParticleSystem()
 const shake = new ScreenShake()
-let ctx = null
-let objects = [] // { x, y, vx, vy, r, color, bomb, sliced }
-let trail = [] // recent pointer points { x, y, t }
+let ctx: CanvasRenderingContext2D | null = null
+let objects: SliceObject[] = []
+let trail: TrailPoint[] = []
 let spawnTimer = 0
 let elapsed = 0
 let multiSlices = 0
 let slicing = false
 
-function spawnWave(width, height) {
+function spawnWave(width: number, height: number) {
   const n = 1 + Math.floor(elapsed / 15) + (Math.random() < 0.3 ? 1 : 0)
   for (let i = 0; i < n; i++) {
     const bomb = Math.random() < 0.12
@@ -49,7 +70,7 @@ function spawnWave(width, height) {
   }
 }
 
-function sliceAt(prev, curr) {
+function sliceAt(prev: { x: number; y: number }, curr: { x: number; y: number }) {
   let hits = 0
   for (const o of objects) {
     if (o.sliced) continue
@@ -112,19 +133,20 @@ function endGame() {
 
 onMounted(() => {
   const canvas = canvasEl.value
+  if (!canvas) return
   canvas.width = canvas.clientWidth
   canvas.height = Math.min(canvas.clientWidth * 1.2, 520)
   ctx = canvas.getContext('2d')
 
   attachPointer(canvas, {
-    onDown: (p) => {
+    onDown: (p: LocalPoint) => {
       slicing = true
-      trail = [{ ...p, t: performance.now() }]
+      trail = [{ x: p.x, y: p.y, t: performance.now() }]
     },
-    onMove: (p) => {
+    onMove: (p: LocalPoint) => {
       if (!slicing || phase.value !== 'playing') return
       const prev = trail[trail.length - 1]
-      trail.push({ ...p, t: performance.now() })
+      trail.push({ x: p.x, y: p.y, t: performance.now() })
       if (trail.length > 24) trail.shift()
       if (prev) sliceAt(prev, p)
     },
@@ -137,7 +159,8 @@ onMounted(() => {
 
 useGameLoop((dt) => {
   if (!ctx) return
-  const { width, height } = ctx.canvas
+  const ctx2d = ctx
+  const { width, height } = ctx2d.canvas
 
   if (phase.value === 'playing') {
     elapsed += dt
@@ -169,76 +192,76 @@ useGameLoop((dt) => {
   const now = performance.now()
   trail = trail.filter((p) => now - p.t < 180)
 
-  ctx.clearRect(0, 0, width, height)
-  ctx.save()
-  ctx.translate(shake.x, shake.y)
+  ctx2d.clearRect(0, 0, width, height)
+  ctx2d.save()
+  ctx2d.translate(shake.x, shake.y)
 
   // objects
   for (const o of objects) {
-    ctx.save()
-    ctx.translate(o.x, o.y)
-    ctx.rotate(o.rotation)
+    ctx2d.save()
+    ctx2d.translate(o.x, o.y)
+    ctx2d.rotate(o.rotation)
     if (o.bomb) {
-      ctx.beginPath()
-      ctx.arc(0, 0, o.r, 0, Math.PI * 2)
-      ctx.fillStyle = 'rgba(255, 84, 112, 0.25)'
-      ctx.fill()
-      ctx.lineWidth = 2.5
-      ctx.strokeStyle = o.color
-      ctx.shadowColor = o.color
-      ctx.shadowBlur = 14
-      ctx.stroke()
-      ctx.shadowBlur = 0
+      ctx2d.beginPath()
+      ctx2d.arc(0, 0, o.r, 0, Math.PI * 2)
+      ctx2d.fillStyle = 'rgba(255, 84, 112, 0.25)'
+      ctx2d.fill()
+      ctx2d.lineWidth = 2.5
+      ctx2d.strokeStyle = o.color
+      ctx2d.shadowColor = o.color
+      ctx2d.shadowBlur = 14
+      ctx2d.stroke()
+      ctx2d.shadowBlur = 0
       // spikes
       for (let i = 0; i < 6; i++) {
         const a = (i / 6) * Math.PI * 2
-        ctx.beginPath()
-        ctx.moveTo(Math.cos(a) * o.r, Math.sin(a) * o.r)
-        ctx.lineTo(Math.cos(a) * (o.r + 8), Math.sin(a) * (o.r + 8))
-        ctx.stroke()
+        ctx2d.beginPath()
+        ctx2d.moveTo(Math.cos(a) * o.r, Math.sin(a) * o.r)
+        ctx2d.lineTo(Math.cos(a) * (o.r + 8), Math.sin(a) * (o.r + 8))
+        ctx2d.stroke()
       }
     } else {
       // hexagonal shard
-      ctx.beginPath()
+      ctx2d.beginPath()
       for (let i = 0; i < 6; i++) {
         const a = (i / 6) * Math.PI * 2
         const px = Math.cos(a) * o.r
         const py = Math.sin(a) * o.r
-        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py)
+        i === 0 ? ctx2d.moveTo(px, py) : ctx2d.lineTo(px, py)
       }
-      ctx.closePath()
-      ctx.fillStyle = o.color + '2e'
-      ctx.fill()
-      ctx.lineWidth = 2
-      ctx.strokeStyle = o.color
-      ctx.shadowColor = o.color
-      ctx.shadowBlur = 10
-      ctx.stroke()
-      ctx.shadowBlur = 0
+      ctx2d.closePath()
+      ctx2d.fillStyle = o.color + '2e'
+      ctx2d.fill()
+      ctx2d.lineWidth = 2
+      ctx2d.strokeStyle = o.color
+      ctx2d.shadowColor = o.color
+      ctx2d.shadowBlur = 10
+      ctx2d.stroke()
+      ctx2d.shadowBlur = 0
     }
-    ctx.restore()
+    ctx2d.restore()
   }
 
   // slice trail
   if (trail.length > 1) {
-    ctx.lineCap = 'round'
-    ctx.lineJoin = 'round'
+    ctx2d.lineCap = 'round'
+    ctx2d.lineJoin = 'round'
     for (let i = 1; i < trail.length; i++) {
       const age = (now - trail[i].t) / 180
-      ctx.beginPath()
-      ctx.moveTo(trail[i - 1].x, trail[i - 1].y)
-      ctx.lineTo(trail[i].x, trail[i].y)
-      ctx.lineWidth = (1 - age) * 8
-      ctx.strokeStyle = `rgba(232, 238, 252, ${(1 - age) * 0.9})`
-      ctx.shadowColor = '#38d6ff'
-      ctx.shadowBlur = 12
-      ctx.stroke()
+      ctx2d.beginPath()
+      ctx2d.moveTo(trail[i - 1].x, trail[i - 1].y)
+      ctx2d.lineTo(trail[i].x, trail[i].y)
+      ctx2d.lineWidth = (1 - age) * 8
+      ctx2d.strokeStyle = `rgba(232, 238, 252, ${(1 - age) * 0.9})`
+      ctx2d.shadowColor = '#38d6ff'
+      ctx2d.shadowBlur = 12
+      ctx2d.stroke()
     }
-    ctx.shadowBlur = 0
+    ctx2d.shadowBlur = 0
   }
 
-  particles.render(ctx)
-  ctx.restore()
+  particles.render(ctx2d)
+  ctx2d.restore()
 })
 </script>
 

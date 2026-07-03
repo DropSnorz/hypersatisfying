@@ -4,20 +4,32 @@
  * never cut off and the repo stays asset-light.
  */
 
-let ctx = null
+interface ToneOptions {
+  freq?: number
+  endFreq?: number
+  duration?: number
+  type?: OscillatorType
+  volume?: number
+  delay?: number
+}
+
+let ctx: AudioContext | null = null
 let muted = false
 
-function audioCtx() {
-  if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)()
+function audioCtx(): AudioContext {
+  if (!ctx) {
+    const AudioCtor = window.AudioContext || (window as any).webkitAudioContext
+    ctx = new AudioCtor()
+  }
   if (ctx.state === 'suspended') ctx.resume()
   return ctx
 }
 
-export function setMuted(value) {
+export function setMuted(value: boolean) {
   muted = value
 }
 
-function tone({ freq = 440, endFreq, duration = 0.12, type = 'sine', volume = 0.25, delay = 0 }) {
+function tone({ freq = 440, endFreq, duration = 0.12, type = 'sine', volume = 0.25, delay = 0 }: ToneOptions) {
   if (muted) return
   const ac = audioCtx()
   const t0 = ac.currentTime + delay
@@ -38,7 +50,7 @@ export const sfx = {
   pop(pitchScale = 1) {
     tone({ freq: 520 * pitchScale, endFreq: 880 * pitchScale, duration: 0.08, type: 'square', volume: 0.12 })
   },
-  chime(step = 0) {
+  chime(step: number = 0) {
     // rising pentatonic steps for combos/sequences
     const scale = [523, 587, 659, 784, 880, 1047, 1175, 1319]
     tone({ freq: scale[Math.min(step, scale.length - 1)], duration: 0.18, type: 'sine', volume: 0.2 })

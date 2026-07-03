@@ -4,17 +4,15 @@
  * a transform on a wrapper element.
  */
 export class ScreenShake {
-  constructor() {
-    this.intensity = 0
-    this.duration = 0
-    this.elapsed = 0
-    this.x = 0
-    this.y = 0
-  }
+  intensity = 0
+  duration = 0
+  elapsed = 0
+  x = 0
+  y = 0
 
   /**
-   * @param {number} intensity max pixel offset
-   * @param {number} duration seconds
+   * @param intensity max pixel offset
+   * @param duration seconds
    */
   shake(intensity = 8, duration = 0.3) {
     // stack: keep the stronger of current vs new
@@ -25,7 +23,7 @@ export class ScreenShake {
     }
   }
 
-  update(dt) {
+  update(dt: number) {
     if (this.elapsed >= this.duration) {
       this.x = 0
       this.y = 0

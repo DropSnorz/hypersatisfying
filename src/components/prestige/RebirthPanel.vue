@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useGameStore } from '../../stores/gameStore'
 import { useJuice } from '../../composables/useJuice'

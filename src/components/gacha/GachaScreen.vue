@@ -1,13 +1,14 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import PullReveal from './PullReveal.vue'
 import { useGameStore } from '../../stores/gameStore'
-import { useGachaStore, BANNERS } from '../../stores/gachaStore'
+import { useGachaStore, BANNERS, type BannerId } from '../../stores/gachaStore'
 import { useInventoryStore } from '../../stores/inventoryStore'
 import { useQuestStore } from '../../stores/questStore'
 import { useJuice } from '../../composables/useJuice'
 import { formatNumber } from '../../engine/numberFormat'
 import { sfx } from '../../engine/soundManager'
+import type { GachaItem } from '../../gacha/itemPool'
 
 const game = useGameStore()
 const gacha = useGachaStore()
@@ -15,9 +16,9 @@ const inventory = useInventoryStore()
 const quests = useQuestStore()
 const { toast } = useJuice()
 
-const pending = ref(null) // results awaiting reveal
+const pending = ref<GachaItem[] | null>(null) // results awaiting reveal
 
-function pull(bannerId, count) {
+function pull(bannerId: BannerId, count: number) {
   const banner = BANNERS[bannerId]
   const cost = count === 10 ? banner.cost10 : banner.cost * count
   const paid = banner.currency === 'shards' ? game.spendShards(cost) : game.spendCores(cost)
@@ -31,6 +32,7 @@ function pull(bannerId, count) {
 }
 
 function collect() {
+  if (!pending.value) return
   for (const item of pending.value) {
     inventory.addItem(item)
   }

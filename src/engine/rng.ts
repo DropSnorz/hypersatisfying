@@ -2,7 +2,9 @@
  * Seeded PRNG (mulberry32) so gacha resolution is deterministic
  * under a known seed (testing) while wall-clock seeded in production.
  */
-export function createRng(seed = Date.now()) {
+export type Rng = () => number
+
+export function createRng(seed = Date.now()): Rng {
   let a = seed >>> 0
   return function rng() {
     a |= 0
@@ -14,7 +16,7 @@ export function createRng(seed = Date.now()) {
 }
 
 /** Pick a weighted option: entries of shape { weight, ...rest } */
-export function weightedPick(rng, entries) {
+export function weightedPick<T extends { weight: number }>(rng: Rng, entries: T[]): T {
   const total = entries.reduce((sum, e) => sum + e.weight, 0)
   let roll = rng() * total
   for (const entry of entries) {

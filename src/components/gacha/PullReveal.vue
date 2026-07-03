@@ -1,27 +1,29 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import RarityCard from './RarityCard.vue'
-import { RARITIES } from '../../gacha/itemPool'
+import { RARITIES, type GachaItem, type RarityKey } from '../../gacha/itemPool'
 import { useGameLoop } from '../../composables/useGameLoop'
 import { ParticleSystem } from '../../engine/particles'
 import { ScreenShake } from '../../engine/screenShake'
 import { sfx } from '../../engine/soundManager'
 
-const props = defineProps({
-  results: { type: Array, required: true }, // items in pull order
-})
-const emit = defineEmits(['done'])
+const props = defineProps<{
+  results: GachaItem[] // items in pull order
+}>()
+const emit = defineEmits<{ done: [] }>()
 
-const RANK = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4 }
+const RANK: Record<RarityKey, number> = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4 }
 
-const canvasEl = ref(null)
-const stage = ref('charging') // charging | cracked | cards
+type Stage = 'charging' | 'cracked' | 'cards'
+
+const canvasEl = ref<HTMLCanvasElement | null>(null)
+const stage = ref<Stage>('charging')
 const revealedCount = ref(0)
 const skippable = ref(false)
 
 const particles = new ParticleSystem()
 const shake = new ScreenShake()
-let ctx = null
+let ctx: CanvasRenderingContext2D | null = null
 let chargeT = 0
 
 // best rarity drives the anticipation length and burst color
@@ -34,6 +36,7 @@ const ordered = [...props.results].sort((a, b) => RANK[a.rarity] - RANK[b.rarity
 const chargeDuration = 1 + bestRank * 0.35
 
 function crack() {
+  if (!ctx) return
   stage.value = 'cracked'
   const { width, height } = ctx.canvas
   particles.burst(width / 2, height / 2, {
@@ -81,6 +84,7 @@ function skip() {
 
 onMounted(() => {
   const canvas = canvasEl.value
+  if (!canvas) return
   canvas.width = canvas.clientWidth
   canvas.height = canvas.clientHeight
   ctx = canvas.getContext('2d')
@@ -90,13 +94,14 @@ onMounted(() => {
 
 useGameLoop((dt, time) => {
   if (!ctx) return
-  const { width, height } = ctx.canvas
+  const context = ctx
+  const { width, height } = context.canvas
   particles.update(dt)
   shake.update(dt)
 
-  ctx.clearRect(0, 0, width, height)
-  ctx.save()
-  ctx.translate(shake.x, shake.y)
+  context.clearRect(0, 0, width, height)
+  context.save()
+  context.translate(shake.x, shake.y)
 
   if (stage.value === 'charging') {
     chargeT += dt
@@ -104,29 +109,29 @@ useGameLoop((dt, time) => {
     // orb pulses faster and glows harder as it charges
     const pulse = 1 + Math.sin(time * (6 + p * 18)) * 0.12 * (0.4 + p)
     const r = (30 + p * 26) * pulse
-    ctx.beginPath()
-    ctx.arc(width / 2, height / 2, r, 0, Math.PI * 2)
-    ctx.fillStyle = bestHex + '22'
-    ctx.fill()
-    ctx.lineWidth = 3
-    ctx.strokeStyle = bestHex
-    ctx.shadowColor = bestHex
-    ctx.shadowBlur = 20 + p * 50
-    ctx.stroke()
-    ctx.shadowBlur = 0
+    context.beginPath()
+    context.arc(width / 2, height / 2, r, 0, Math.PI * 2)
+    context.fillStyle = bestHex + '22'
+    context.fill()
+    context.lineWidth = 3
+    context.strokeStyle = bestHex
+    context.shadowColor = bestHex
+    context.shadowBlur = 20 + p * 50
+    context.stroke()
+    context.shadowBlur = 0
     // orbiting sparks
     for (let i = 0; i < 3; i++) {
       const a = time * (3 + p * 6) + (i * Math.PI * 2) / 3
-      ctx.beginPath()
-      ctx.arc(width / 2 + Math.cos(a) * (r + 16), height / 2 + Math.sin(a) * (r + 16), 3, 0, Math.PI * 2)
-      ctx.fillStyle = bestHex
-      ctx.fill()
+      context.beginPath()
+      context.arc(width / 2 + Math.cos(a) * (r + 16), height / 2 + Math.sin(a) * (r + 16), 3, 0, Math.PI * 2)
+      context.fillStyle = bestHex
+      context.fill()
     }
     if (p >= 1) crack()
   }
 
-  particles.render(ctx)
-  ctx.restore()
+  particles.render(context)
+  context.restore()
 })
 </script>
 

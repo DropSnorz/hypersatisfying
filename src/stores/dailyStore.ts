@@ -5,7 +5,16 @@ import { defineStore } from 'pinia'
  * so a missed timezone boundary doesn't nuke the streak.
  */
 
-export const DAILY_CYCLE = [
+export interface DailyReward {
+  shards: number
+  cores: number
+}
+
+export interface DailyClaimResult extends DailyReward {
+  streak: number
+}
+
+export const DAILY_CYCLE: DailyReward[] = [
   { shards: 200, cores: 0 },
   { shards: 300, cores: 1 },
   { shards: 400, cores: 1 },
@@ -19,8 +28,14 @@ function todayKey() {
   return new Date().toISOString().slice(0, 10)
 }
 
+export interface DailyState {
+  lastClaimDate: string
+  streak: number
+  longestStreak: number
+}
+
 export const useDailyStore = defineStore('daily', {
-  state: () => ({
+  state: (): DailyState => ({
     lastClaimDate: '',
     streak: 0,
     longestStreak: 0,
@@ -33,13 +48,13 @@ export const useDailyStore = defineStore('daily', {
   },
 
   actions: {
-    /** Claims today's reward. Returns { shards, cores, streak } or null. */
-    claim() {
+    /** Claims today's reward. Returns null if already claimed today. */
+    claim(): DailyClaimResult | null {
       const today = todayKey()
       if (this.lastClaimDate === today) return null
 
       const last = this.lastClaimDate ? new Date(this.lastClaimDate) : null
-      const gapDays = last ? (new Date(today) - last) / 86400000 : Infinity
+      const gapDays = last ? (new Date(today).getTime() - last.getTime()) / 86400000 : Infinity
       // within 48h keeps the streak; longer resets it
       this.streak = gapDays <= 2 ? this.streak + 1 : 1
       this.longestStreak = Math.max(this.longestStreak, this.streak)
