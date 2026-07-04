@@ -48,6 +48,7 @@ const QUEST_TEMPLATES: QuestTemplate[] = [
   { type: 'gachaPulls', target: 3, gameId: 'any', desc: 'Pull the gacha 3 times', reward: { dollars: 400, compute: 1 } },
   { type: 'playCount', target: 2, gameId: 'bubble-pop', desc: 'Play Bubble Pop twice', reward: { dollars: 350, compute: 1 } },
   { type: 'playCount', target: 2, gameId: 'load-balancer', desc: 'Play Load Balancer twice', reward: { dollars: 350, compute: 1 } },
+  { type: 'playCount', target: 2, gameId: 'eviction-scheduler', desc: 'Play Eviction Scheduler twice', reward: { dollars: 350, compute: 1 } },
   { type: 'playCount', target: 2, gameId: 'slice-reflex', desc: 'Play Slice Reflex twice', reward: { dollars: 350, compute: 1 } },
   { type: 'playCount', target: 2, gameId: 'pattern-match', desc: 'Play Pattern Match twice', reward: { dollars: 350, compute: 1 } },
   { type: 'scoreThreshold', target: 50, gameId: 'any', desc: 'Score 50+ in a single round', reward: { dollars: 450, compute: 2 } },

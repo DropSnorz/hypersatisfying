@@ -9,18 +9,13 @@ import { sfx } from '../engine/soundManager'
 import { formatNumber } from '../engine/numberFormat'
 
 type Phase = 'ready' | 'playing' | 'over'
-type Judgement = '' | 'PERFECT ROUTE' | 'ROUTED' | 'WASTED'
+type Judgement = '' | 'BALANCED' | 'ROUTED' | 'DROPPED' | 'OVERFLOW'
 
-interface Server {
-  load: number // 0..1
-  rate: number // load growth per second
-  flashT: number // flush animation 0..1
-  overloadT: number // overload flash 0..1
-}
-
-const SERVERS = 4
 const LIVES = 3
-const HOT_ZONE = 0.7 // flushing at load >= this is a perfect route
+const QUEUE_CAP = 60 // combined pending requests before the balancer chokes
+
+const LEFT_COLOR = '#38d6ff'
+const RIGHT_COLOR = '#8b7bff'
 
 const canvasEl = ref<HTMLCanvasElement | null>(null)
 const score = ref(0)
@@ -35,30 +30,36 @@ const { reportResult } = useMinigameResult()
 const particles = new ParticleSystem()
 const shake = new ScreenShake()
 let ctx: CanvasRenderingContext2D | null = null
-let servers: Server[] = []
-let needleT = 0 // 0..1 sweep position across the rack row
-let needleDir = 1
-let needleSpeed = 0.5 // sweeps per second, ramps up
-let intensity = 1 // global traffic multiplier, ramps up
-let elapsed = 0
+let markerT = 0 // 0..1 sweep position along the bar
+let dir = 1
+let speed = 0.55 // sweeps per second, ramps up
+let leftQ = 4 // pending requests per pool
+let rightQ = 4
+let leftRate = 2 // arrivals per second — the two rates differ, skewing
+let rightRate = 3 // the balance point the gold zone sits on
 let bestStreak = 0
-let perfectRoutes = 0
+let elapsed = 0
+let flashT = 0
 let judgeTimeout = 0
 
-const SERVER_COLORS = ['#38d6ff', '#8b7bff', '#3dffa0', '#ff4dd8']
-
-function rackRect(i: number) {
-  const { width, height } = ctx!.canvas
-  const pad = width * 0.06
-  const gap = width * 0.03
-  const w = (width - pad * 2 - gap * (SERVERS - 1)) / SERVERS
-  const h = height * 0.52
-  return { x: pad + i * (w + gap), y: height * 0.3, w, h }
+function zoneWidth() {
+  return Math.max(0.05, 0.16 - streak.value * 0.004)
 }
 
-function needleServer(): number {
-  // which rack the needle currently points at
-  return Math.min((needleT * SERVERS) | 0, SERVERS - 1)
+/**
+ * The gold zone sits on the traffic balance point: the busier the left
+ * pool, the further left you must dispatch. Drifts live as queues grow.
+ */
+function zoneCenter() {
+  const total = leftQ + rightQ
+  if (total <= 0) return 0.5
+  return Math.min(Math.max(leftQ / total, 0.1), 0.9)
+}
+
+function newRates() {
+  // deliberately asymmetric arrival rates so the balance point keeps moving
+  leftRate = (1.2 + Math.random() * 3.2) * (1 + elapsed * 0.015)
+  rightRate = (1.2 + Math.random() * 3.2) * (1 + elapsed * 0.015)
 }
 
 function setJudgement(j: Judgement) {
@@ -67,96 +68,94 @@ function setJudgement(j: Judgement) {
   judgeTimeout = setTimeout(() => (judgement.value = ''), 550)
 }
 
-function newRate() {
-  // load growth per second, scaled by ramping intensity — gentle at
-  // t=0 (~12-25s to overload) so the opening doesn't punish learning
-  return (0.04 + Math.random() * 0.045) * intensity
+function queueAnchors() {
+  const { width, height } = ctx!.canvas
+  return {
+    left: { x: width * 0.11, y: height * 0.5 },
+    right: { x: width * 0.89, y: height * 0.5 },
+    barY: height / 2,
+    barX0: width * 0.2,
+    barW: width * 0.6,
+  }
 }
 
-function route() {
+function dispatch() {
   if (phase.value !== 'playing' || !ctx) return
-  const i = needleServer()
-  const server = servers[i]
-  const rect = rackRect(i)
-  const loadY = rect.y + rect.h * (1 - server.load)
+  const center = zoneCenter()
+  const w = zoneWidth()
+  const dist = Math.abs(markerT - center)
+  const { left, right, barY, barX0, barW } = queueAnchors()
+  const mx = barX0 + markerT * barW
 
-  if (server.load >= HOT_ZONE) {
-    // PERFECT: drained a rack right before it tipped over
+  if (dist < w * 0.25) {
+    // BALANCED: dispatched right on the balance point — both pools drain
     streak.value++
     bestStreak = Math.max(bestStreak, streak.value)
-    perfectRoutes++
-    score.value += Math.floor(10 + server.load * 20 + streak.value * 2)
-    setJudgement('PERFECT ROUTE')
-    particles.burst(rect.x + rect.w / 2, loadY, {
-      colors: ['#ffc83d', '#ffffff', SERVER_COLORS[i]],
-      count: 30,
-      speed: 280,
-      shape: 'spark',
-      gravity: 140,
-    })
+    score.value += Math.floor(10 + (leftQ + rightQ) / 3 + streak.value * 2)
+    setJudgement('BALANCED')
+    particles.burst(mx, barY, { colors: ['#ffc83d', '#ffffff'], count: 24, speed: 250, shape: 'spark' })
+    particles.burst(left.x, left.y, { colors: [LEFT_COLOR], count: 12, speed: 180 })
+    particles.burst(right.x, right.y, { colors: [RIGHT_COLOR], count: 12, speed: 180 })
     shake.shake(6, 0.2)
     sfx.chime(Math.min(streak.value, 7))
-    server.flashT = 1
-  } else if (server.load >= 0.35) {
-    // fine, but the traffic wasn't urgent yet
+    flashT = 1
+    leftQ = 1 + Math.random() * 2
+    rightQ = 1 + Math.random() * 2
+    newRates()
+  } else if (dist < w * 0.6) {
+    // close enough: half the backlog gets through
     streak.value = 0
-    score.value += 3
+    score.value += 4
     setJudgement('ROUTED')
-    particles.burst(rect.x + rect.w / 2, loadY, {
-      colors: [SERVER_COLORS[i]],
-      count: 10,
-      speed: 150,
-    })
+    particles.burst(mx, barY, { colors: [LEFT_COLOR], count: 10, speed: 150 })
     sfx.pop(1.2)
+    leftQ /= 2
+    rightQ /= 2
+    newRates()
   } else {
-    // wasted a dispatch on an idle rack
+    // dispatched into the wrong pool: requests dropped
     streak.value = 0
-    setJudgement('WASTED')
+    lives.value--
+    setJudgement('DROPPED')
+    shake.shake(9, 0.3)
     sfx.error()
+    if (lives.value <= 0) {
+      endGame()
+      return
+    }
   }
-
-  server.load = 0.04
-  server.rate = newRate()
+  speed = Math.min(speed + 0.025, 1.5)
 }
 
-function overload(i: number) {
-  const server = servers[i]
-  const rect = rackRect(i)
-  server.load = 0.15
-  server.rate = newRate()
-  server.overloadT = 1
+function overflow() {
+  // backlog exceeded capacity while you hesitated
   streak.value = 0
   lives.value--
-  particles.burst(rect.x + rect.w / 2, rect.y + rect.h * 0.2, {
-    colors: ['#ff5470', '#ffaa00'],
-    count: 36,
-    speed: 300,
-    size: 6,
-  })
-  shake.shake(14, 0.45)
+  setJudgement('OVERFLOW')
+  const { left, right } = queueAnchors()
+  particles.burst(left.x, left.y, { colors: ['#ff5470', '#ffaa00'], count: 20, speed: 260, size: 5 })
+  particles.burst(right.x, right.y, { colors: ['#ff5470', '#ffaa00'], count: 20, speed: 260, size: 5 })
+  shake.shake(13, 0.4)
   sfx.thud()
+  leftQ = 3
+  rightQ = 3
+  newRates()
   if (lives.value <= 0) endGame()
 }
 
 function startGame() {
-  intensity = 1
-  servers = Array.from({ length: SERVERS }, (_, i) => ({
-    load: 0.1 + i * 0.12, // staggered so racks don't all peak together
-    rate: 0,
-    flashT: 0,
-    overloadT: 0,
-  }))
-  servers.forEach((s) => (s.rate = newRate()))
   score.value = 0
   streak.value = 0
   lives.value = LIVES
   bestStreak = 0
-  perfectRoutes = 0
   elapsed = 0
-  needleT = 0
-  needleDir = 1
-  needleSpeed = 0.5
+  speed = 0.55
+  markerT = 0
+  dir = 1
+  leftQ = 4
+  rightQ = 4
   lastReward.value = null
+  newRates()
   phase.value = 'playing'
 }
 
@@ -165,7 +164,7 @@ function endGame() {
   lastReward.value = reportResult({
     gameId: 'load-balancer',
     score: score.value,
-    stats: { bestStreak, perfectRoutes },
+    stats: { bestStreak },
   })
 }
 
@@ -175,7 +174,7 @@ onMounted(() => {
   canvas.width = canvas.clientWidth
   canvas.height = Math.min(canvas.clientWidth * 1.1, 480)
   ctx = canvas.getContext('2d')
-  attachPointer(canvas, { onDown: route })
+  attachPointer(canvas, { onDown: dispatch })
 })
 
 useGameLoop((dt, time) => {
@@ -185,166 +184,143 @@ useGameLoop((dt, time) => {
 
   if (phase.value === 'playing') {
     elapsed += dt
-    // difficulty ramp: traffic and needle both speed up
-    intensity = 1 + elapsed * 0.035
-    needleSpeed = Math.min(0.5 + elapsed * 0.012, 1.4)
+    markerT += dir * speed * dt
+    if (markerT >= 1) { markerT = 1; dir = -1 }
+    if (markerT <= 0) { markerT = 0; dir = 1 }
 
-    needleT += needleDir * needleSpeed * dt
-    if (needleT >= 1) { needleT = 1; needleDir = -1 }
-    if (needleT <= 0) { needleT = 0; needleDir = 1 }
-
-    for (let i = 0; i < servers.length; i++) {
-      const s = servers[i]
-      s.load += s.rate * dt
-      if (s.load >= 1) overload(i)
-    }
+    leftQ += leftRate * dt
+    rightQ += rightRate * dt
+    if (leftQ + rightQ >= QUEUE_CAP) overflow()
   }
 
-  for (const s of servers) {
-    s.flashT = Math.max(s.flashT - dt * 3, 0)
-    s.overloadT = Math.max(s.overloadT - dt * 2, 0)
-  }
   particles.update(dt)
   shake.update(dt)
+  if (flashT > 0) flashT = Math.max(flashT - dt * 3, 0)
 
   ctx2d.clearRect(0, 0, width, height)
   ctx2d.save()
   ctx2d.translate(shake.x, shake.y)
 
-  // incoming traffic stream raining toward the racks
-  ctx2d.fillStyle = 'rgba(140, 180, 255, 0.35)'
-  for (let i = 0; i < 14; i++) {
-    const px = (((i * 97) % 100) / 100) * width
-    const py = (time * (40 + (i % 5) * 14) + i * 53) % (height * 0.22)
-    ctx2d.fillRect(px, py, 2, 6)
+  const { left, right, barY, barX0, barW } = queueAnchors()
+  const pools = [
+    { anchor: left, q: leftQ, rate: leftRate, color: LEFT_COLOR, dir: 1 },
+    { anchor: right, q: rightQ, rate: rightRate, color: RIGHT_COLOR, dir: -1 },
+  ]
+
+  // request pools: stacked pending-request bars + arrival rain whose
+  // density shows each pool's arrival rate
+  const pressure = Math.min((leftQ + rightQ) / QUEUE_CAP, 1)
+  for (const pool of pools) {
+    const { anchor, q, rate, color } = pool
+    const count = Math.min(Math.floor(q), 30)
+
+    // arrival rain above the pool, denser when the rate is higher
+    ctx2d.fillStyle = color + '77'
+    const drops = Math.round(rate * 2.4)
+    for (let i = 0; i < drops; i++) {
+      const px = anchor.x - 12 + (((i * 53) % 24))
+      const py = (time * (60 + (i % 4) * 22) + i * 71) % (height * 0.3)
+      ctx2d.fillRect(px, py, 2, 5)
+    }
+
+    // stack of queued requests growing up from the pool base
+    const stackBase = height * 0.72
+    for (let i = 0; i < count; i++) {
+      const hotRow = pressure > 0.75 && i > count - 4
+      ctx2d.beginPath()
+      ctx2d.roundRect(anchor.x - 15, stackBase - i * 7, 30, 5, 2)
+      ctx2d.fillStyle = hotRow ? '#ff5470cc' : color + (i % 2 ? 'aa' : '66')
+      if (hotRow) {
+        ctx2d.shadowColor = '#ff5470'
+        ctx2d.shadowBlur = 8 + Math.sin(time * 14) * 4
+      }
+      ctx2d.fill()
+      ctx2d.shadowBlur = 0
+    }
+
+    // pool count readout
+    ctx2d.font = `700 12px 'JetBrains Mono', monospace`
+    ctx2d.textAlign = 'center'
+    ctx2d.fillStyle = pressure > 0.75 ? '#ff5470' : color
+    ctx2d.fillText(`${Math.floor(q)}`, anchor.x, stackBase + 20)
   }
 
-  const active = needleServer()
-
-  for (let i = 0; i < servers.length; i++) {
-    const s = servers[i]
-    const { x, y, w, h } = rackRect(i)
-    const color = SERVER_COLORS[i]
-    const hot = s.load >= HOT_ZONE
-    const nearTip = s.load > 0.92
-
-    // rack chassis
-    ctx2d.beginPath()
-    ctx2d.roundRect(x, y, w, h, 8)
-    ctx2d.fillStyle = 'rgba(140, 180, 255, 0.05)'
-    ctx2d.fill()
-    ctx2d.lineWidth = i === active ? 2.5 : 1.5
-    if (s.overloadT > 0) {
-      ctx2d.strokeStyle = `rgba(255, 84, 112, ${0.4 + s.overloadT * 0.6})`
-      ctx2d.shadowColor = '#ff5470'
-      ctx2d.shadowBlur = s.overloadT * 30
-    } else if (i === active) {
-      ctx2d.strokeStyle = 'rgba(232, 238, 252, 0.9)'
-      ctx2d.shadowColor = '#e8eefc'
-      ctx2d.shadowBlur = 10
-    } else {
-      ctx2d.strokeStyle = 'rgba(140, 180, 255, 0.25)'
-    }
-    ctx2d.stroke()
-    ctx2d.shadowBlur = 0
-
-    // hot-zone threshold line (flush above this for a perfect route)
-    const hotY = y + h * (1 - HOT_ZONE)
-    ctx2d.setLineDash([4, 4])
-    ctx2d.lineWidth = 1
-    ctx2d.strokeStyle = 'rgba(255, 200, 61, 0.5)'
-    ctx2d.beginPath()
-    ctx2d.moveTo(x + 3, hotY)
-    ctx2d.lineTo(x + w - 3, hotY)
-    ctx2d.stroke()
-    ctx2d.setLineDash([])
-
-    // load fill: rack color when cool, gold in the hot zone, red near tipping
-    const loadH = h * Math.min(s.load, 1)
-    const fill = nearTip ? '#ff5470' : hot ? '#ffc83d' : color
-    ctx2d.beginPath()
-    ctx2d.roundRect(x + 4, y + h - Math.max(loadH - 4, 2) - 4, w - 8, Math.max(loadH - 4, 2), 5)
-    ctx2d.fillStyle = fill + (hot ? 'cc' : '88')
-    if (hot) {
-      // pulse harder as it gets closer to overload
-      ctx2d.shadowColor = fill
-      ctx2d.shadowBlur = 10 + Math.sin(time * (nearTip ? 18 : 9)) * 6 + s.load * 14
-    }
-    ctx2d.fill()
-    ctx2d.shadowBlur = 0
-
-    // flush flash
-    if (s.flashT > 0) {
-      ctx2d.fillStyle = `rgba(255, 255, 255, ${s.flashT * 0.35})`
-      ctx2d.beginPath()
-      ctx2d.roundRect(x, y, w, h, 8)
-      ctx2d.fill()
-    }
-
-    // load percentage readout
+  // capacity warning
+  if (pressure > 0.75) {
     ctx2d.font = `700 11px 'JetBrains Mono', monospace`
     ctx2d.textAlign = 'center'
-    ctx2d.fillStyle = nearTip ? '#ff5470' : hot ? '#ffc83d' : 'rgba(147, 161, 189, 0.9)'
-    ctx2d.fillText(`${Math.floor(s.load * 100)}%`, x + w / 2, y + h + 18)
-
-    // rack LEDs
-    for (let led = 0; led < 4; led++) {
-      const on = s.load > (led + 1) / 5
-      ctx2d.beginPath()
-      ctx2d.arc(x + 8 + led * 8, y + 9, 2, 0, Math.PI * 2)
-      ctx2d.fillStyle = on ? color : 'rgba(140, 180, 255, 0.15)'
-      ctx2d.fill()
-    }
+    ctx2d.fillStyle = `rgba(255, 84, 112, ${0.5 + Math.sin(time * 10) * 0.4})`
+    ctx2d.fillText('BACKLOG CRITICAL', width / 2, height * 0.82)
   }
 
-  // balancer needle sweeping above the racks
-  const first = rackRect(0)
-  const last = rackRect(SERVERS - 1)
-  const needleY = first.y - 26
-  const sweepX = first.x + (last.x + last.w - first.x) * needleT
-  const activeRect = rackRect(active)
+  // dispatch bar (the original reflex bar, driven by the queue ratio)
+  const center = zoneCenter()
+  const w = zoneWidth()
 
-  // sweep track
-  ctx2d.lineWidth = 3
   ctx2d.lineCap = 'round'
+  ctx2d.lineWidth = 6
   ctx2d.strokeStyle = 'rgba(140, 180, 255, 0.15)'
   ctx2d.beginPath()
-  ctx2d.moveTo(first.x, needleY)
-  ctx2d.lineTo(last.x + last.w, needleY)
+  ctx2d.moveTo(barX0, barY)
+  ctx2d.lineTo(barX0 + barW, barY)
   ctx2d.stroke()
 
-  // needle head
-  const pulse = 1 + Math.sin(time * 10) * 0.1
+  // balance zone (glows on a balanced dispatch via flashT)
+  const zx0 = barX0 + (center - w / 2) * barW
+  ctx2d.lineWidth = 18 + flashT * 14
+  ctx2d.strokeStyle = `rgba(255, 200, 61, ${0.35 + flashT * 0.55})`
+  ctx2d.shadowColor = '#ffc83d'
+  ctx2d.shadowBlur = 12 + flashT * 30
   ctx2d.beginPath()
-  ctx2d.moveTo(sweepX, needleY + 10 * pulse)
-  ctx2d.lineTo(sweepX - 7, needleY - 6)
-  ctx2d.lineTo(sweepX + 7, needleY - 6)
-  ctx2d.closePath()
-  ctx2d.fillStyle = '#e8eefc'
-  ctx2d.shadowColor = '#38d6ff'
-  ctx2d.shadowBlur = 16
-  ctx2d.fill()
+  ctx2d.moveTo(zx0, barY)
+  ctx2d.lineTo(zx0 + w * barW, barY)
+  ctx2d.stroke()
   ctx2d.shadowBlur = 0
 
-  // routing beam down to the active rack
-  ctx2d.strokeStyle = 'rgba(232, 238, 252, 0.18)'
+  // perfect core of the zone
+  ctx2d.lineWidth = 18 + flashT * 14
+  ctx2d.strokeStyle = `rgba(255, 255, 255, ${0.25 + flashT * 0.5})`
+  const px0 = barX0 + (center - (w * 0.25) / 2) * barW
+  ctx2d.beginPath()
+  ctx2d.moveTo(px0, barY)
+  ctx2d.lineTo(px0 + w * 0.25 * barW, barY)
+  ctx2d.stroke()
+
+  // feeder lines from each pool into the bar ends
   ctx2d.lineWidth = 1.5
   ctx2d.setLineDash([3, 5])
+  ctx2d.strokeStyle = LEFT_COLOR + '55'
   ctx2d.beginPath()
-  ctx2d.moveTo(sweepX, needleY + 12)
-  ctx2d.lineTo(activeRect.x + activeRect.w / 2, activeRect.y - 4)
+  ctx2d.moveTo(left.x + 18, barY)
+  ctx2d.lineTo(barX0 - 6, barY)
+  ctx2d.stroke()
+  ctx2d.strokeStyle = RIGHT_COLOR + '55'
+  ctx2d.beginPath()
+  ctx2d.moveTo(barX0 + barW + 6, barY)
+  ctx2d.lineTo(right.x - 18, barY)
   ctx2d.stroke()
   ctx2d.setLineDash([])
+
+  // marker
+  const mx = barX0 + markerT * barW
+  const pulse = 1 + Math.sin(time * 10) * 0.08
+  ctx2d.beginPath()
+  ctx2d.arc(mx, barY, 13 * pulse, 0, Math.PI * 2)
+  ctx2d.fillStyle = '#e8eefc'
+  ctx2d.shadowColor = '#38d6ff'
+  ctx2d.shadowBlur = 22
+  ctx2d.fill()
+  ctx2d.shadowBlur = 0
 
   // streak heat readout
   if (streak.value > 0) {
     const heat = Math.min(streak.value / 15, 1)
     ctx2d.fillStyle = `rgba(255, ${200 - heat * 120}, ${61 * (1 - heat)}, ${0.5 + heat * 0.5})`
-    ctx2d.font = `700 ${16 + heat * 12}px 'JetBrains Mono', monospace`
+    ctx2d.font = `700 ${18 + heat * 14}px 'JetBrains Mono', monospace`
     ctx2d.textAlign = 'center'
     ctx2d.shadowColor = '#ffc83d'
     ctx2d.shadowBlur = heat * 24
-    ctx2d.fillText(`×${streak.value}`, width / 2, height - 14)
+    ctx2d.fillText(`×${streak.value}`, width / 2, barY + 70)
     ctx2d.shadowBlur = 0
   }
 
@@ -360,7 +336,7 @@ useGameLoop((dt, time) => {
         <span class="stat-label">SCORE</span>
         <span class="stat-value num">{{ formatNumber(score) }}</span>
       </div>
-      <div class="stat judge" :class="judgement === 'PERFECT ROUTE' ? 'perfect' : judgement === 'ROUTED' ? 'good' : judgement === 'WASTED' ? 'miss' : ''">
+      <div class="stat judge" :class="judgement === 'BALANCED' ? 'perfect' : judgement === 'ROUTED' ? 'good' : judgement ? 'miss' : ''">
         <span class="judge-text">{{ judgement || '·' }}</span>
       </div>
       <div class="stat">
@@ -374,12 +350,12 @@ useGameLoop((dt, time) => {
 
       <div v-if="phase === 'ready'" class="overlay">
         <h3>LOAD BALANCER</h3>
-        <p>Traffic piles onto the racks. Tap to flush the rack under the needle.<br />Flush above the gold line for a PERFECT ROUTE.<br />Let a rack hit 100% and it melts.</p>
+        <p>Requests pile into two pools at different rates.<br />The gold zone sits on the balance point — tap when the marker crosses it.<br />Sloppy dispatches drop requests. Full backlog overflows.</p>
         <button class="cta" @click="startGame">START</button>
       </div>
 
       <div v-if="phase === 'over'" class="overlay">
-        <h3>CLUSTER DOWN</h3>
+        <h3>BALANCER DOWN</h3>
         <p class="final num">{{ formatNumber(score) }} pts</p>
         <p v-if="lastReward" class="reward">
           <span class="dollars-text num">+${{ formatNumber(lastReward.dollars) }}</span>
@@ -394,8 +370,8 @@ useGameLoop((dt, time) => {
 <style scoped>
 .judge-text {
   font-family: var(--font-display);
-  font-size: 13px;
-  letter-spacing: 0.12em;
+  font-size: 14px;
+  letter-spacing: 0.14em;
   color: var(--text-dim);
   transition: all var(--dur-fast);
   white-space: nowrap;
@@ -404,7 +380,7 @@ useGameLoop((dt, time) => {
 .judge.perfect .judge-text {
   color: var(--prestige);
   text-shadow: var(--glow-md) var(--prestige-glow);
-  transform: scale(1.2);
+  transform: scale(1.22);
 }
 
 .judge.good .judge-text {

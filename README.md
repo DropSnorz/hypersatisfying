@@ -35,7 +35,8 @@ before bundling; run `npm run typecheck` on its own to just check types.
 | Game | Loop |
 |---|---|
 | Bubble Pop | Tap same-color chains before the timer ends; gold bubbles pay Compute |
-| Load Balancer | Racks fill with traffic; flush the one under the sweeping needle above the gold line for a PERFECT ROUTE; a rack at 100% melts |
+| Load Balancer | Requests pile into two pools at different rates; tap when the sweeping marker crosses the drifting balance point |
+| Eviction Scheduler | Racks fill with pods; evict the one under the needle above the gold line; a rack at 100% melts |
 | Slice Reflex | Swipe through falling shards; 3+ per stroke pays Compute; avoid mines |
 | Pattern Match | Simon-style sequences; rewards grow superlinearly per round |
 

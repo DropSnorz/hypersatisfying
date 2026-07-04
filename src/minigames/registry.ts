@@ -23,14 +23,27 @@ export const MINIGAMES: MinigameDef[] = [
   {
     id: 'load-balancer',
     name: 'Load Balancer',
-    tagline: 'Flush the hottest rack at the perfect time',
-    icon: '☰',
+    tagline: 'Dispatch on the drifting balance point',
+    icon: '⇌',
     accent: 'var(--prestige)',
     component: defineAsyncComponent(() => import('./LoadBalancer.vue')),
     free: true,
     rewardCurve: (score, stats) => ({
       dollars: score * 3,
-      compute: Math.floor((stats.perfectRoutes ?? 0) / 8),
+      compute: Math.floor((stats.bestStreak ?? 0) / 10),
+    }),
+  },
+  {
+    id: 'eviction-scheduler',
+    name: 'Eviction Scheduler',
+    tagline: 'Evict the hottest rack at the perfect time',
+    icon: '⏏',
+    accent: 'var(--danger)',
+    component: defineAsyncComponent(() => import('./EvictionScheduler.vue')),
+    free: true,
+    rewardCurve: (score, stats) => ({
+      dollars: score * 3,
+      compute: Math.floor((stats.perfectEvictions ?? 0) / 8),
     }),
   },
   {
